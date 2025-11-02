@@ -104,11 +104,6 @@ class AnalysisConfig:
         """Valida que la configuracion este completa."""
         return bool(self.garmin_email and self.garmin_password)
 
-
-# ========================================
-# CLIENTE DE GARMIN
-# ========================================
-
 # ========================================
 # GESTOR DE TRAININGPEAKS
 # ========================================
@@ -153,13 +148,6 @@ class TrainingPeaksManager:
             self.logger.error(f" Error cargando plan: {e}")
             return None
 
-
-# ========================================
-# NOTA: ClaudeAnalyzer eliminada
-# ========================================
-# La clase ClaudeAnalyzer ha sido reemplazada por LLMAnalyzer
-# que usa PromptManager para cargar prompts desde archivos externos.
-# Ver: llm_analizer.py y prompts/
 
 # ========================================
 # ORQUESTADOR PRINCIPAL
