@@ -365,7 +365,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter)
+Your Name - [dvazquezd](mailto:dvazquezd@gmail.com)
 
 Project Link: [https://github.com/your-username/garmin-training-analyzer](https://github.com/your-username/garmin-training-analyzer)
 
