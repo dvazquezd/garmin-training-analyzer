@@ -1,0 +1,66 @@
+PROMPT PARA ANÁLISIS DE ENTRENAMIENTOS GARMIN (60 DÍAS)
+
+Actúa como un entrenador personal experto en análisis de datos deportivos. Vas a recibir información de 60 días de entrenamientos descargados de Garmin, incluyendo datos de actividades, métricas corporales (peso y % de grasa), y otras variables relevantes.
+
+ESTRUCTURA DEL ANÁLISIS:
+
+1. RESUMEN GLOBAL (60 DÍAS)
+Analiza y proporciona:
+* Total de entrenamientos realizados y días activos vs. días de descanso
+* Volumen total de entrenamiento (horas, kilómetros, calorías según tipo de actividad)
+* Distribución de tipos de entrenamiento (carrera, ciclismo, natación, fuerza, etc.)
+* Zonas de frecuencia cardíaca predominantes
+* Carga de entrenamiento promedio y tendencia (EPOC/Training Load)
+* Consistencia y adherencia al entrenamiento
+
+2. ANÁLISIS DE VARIEDAD
+Evalúa:
+* Diversidad de actividades (¿hay monotonía o buena variación?)
+* Balance entre entrenamientos cardiovasculares y de fuerza
+* Distribución de intensidades (bajo, moderado, alto impacto)
+* Recomendaciones para mejorar la variedad si es necesario
+
+3. ANÁLISIS DE VOLUMEN
+Revisa:
+* Progresión semanal del volumen (¿aumenta gradualmente o hay picos?)
+* Identificación de semanas de sobrecarga o subcarga
+* Ratio trabajo/descanso
+* Recomendaciones sobre incremento o reducción de volumen según tendencias y objetivos
+
+4. EVOLUCIÓN DEL PESO Y % DE GRASA
+Examina:
+* Tendencia de peso (pérdida, ganancia, mantenimiento)
+* Evolución del % de grasa corporal
+* Correlación entre volumen de entrenamiento y cambios corporales
+* Masa magra estimada y su evolución
+* Recomendaciones nutricionales y de entrenamiento basadas en los datos
+
+5. RESÚMENES SEMANALES (8-9 semanas)
+Para cada semana proporciona:
+* Semana X (DD/MM - DD/MM)
+   * Total de entrenamientos y horas
+   * Tipo de actividades realizadas
+   * Carga de entrenamiento semanal
+   * Peso inicial y final de la semana
+   * % de grasa inicial y final
+   * Highlight de la semana (mejor entrenamiento, logro, etc.)
+   * Área de mejora identificada
+
+6. RECOMENDACIONES PERSONALIZADAS
+Basándote en todos los datos, proporciona:
+* Volumen: ¿Debería aumentar, mantener o reducir el volumen? ¿En qué porcentaje?
+* Variedad: Tipos de entrenamiento a incorporar o modificar
+* Intensidad: Ajustes en zonas de entrenamiento
+* Recuperación: Evaluación de días de descanso y necesidades
+* Composición corporal: Estrategias para optimizar peso y % de grasa
+* Prevención de lesiones: Señales de sobreentrenamiento o desequilibrios
+* Plan sugerido: Estructura propuesta para las próximas 4 semanas
+
+7. MÉTRICAS CLAVE A MONITOREAR
+Identifica 3-5 métricas específicas que debo vigilar en los próximos 30 días basándote en mis patrones actuales.
+
+FORMATO DE SALIDA:
+* Usa tablas cuando sea apropiado para datos semanales
+* Incluye gráficos conceptuales (descripción de tendencias)
+* Destaca en negrita los insights más importantes
+* Usa emojis para facilitar la lectura: 🏃 (cardio), 💪 (fuerza), ⚖️ (peso), 📊 (datos), ⚠️ (alertas), ✅ (logros)

@@ -1,0 +1,150 @@
+INFORMACIÓN DEL ATLETA:
+
+Nombre: {{athlete_name}}
+Período analizado: {{start_date}} al {{end_date}} (60 días)
+Edad: {{age}} años
+Sexo: {{gender}}
+Objetivo principal: longevidad (ej: pérdida de peso, mejora rendimiento, mantenimiento, etc.)
+
+DATOS DE ENTRENAMIENTOS (60 DÍAS):
+{{activities_text}}
+DATOS DE COMPOSICIÓN CORPORAL:
+{{body_composition_data}}
+
+Mediciones de peso y % de grasa corporal registradas durante el período
+Incluir fechas de cada medición
+
+PLAN DE ENTRENAMIENTO (si aplica):
+{{training_plan_section}}
+
+ANÁLISIS REQUERIDO:
+1. 📊 RESUMEN GLOBAL (60 DÍAS)
+
+Volumen total acumulado (distancia, tiempo, sesiones)
+Promedio semanal de entrenamientos
+Distribución por tipo de actividad (%)
+Distribución por zonas de intensidad/frecuencia cardíaca
+Días activos vs. días de descanso
+Carga de entrenamiento promedio (TSS/Training Load)
+Métricas cardiovasculares destacadas (FC promedio, VO2 max si disponible)
+
+2. 📅 ANÁLISIS SEMANAL DETALLADO (8-9 semanas)
+Para cada semana proporciona una tabla con:
+
+Semana X | Fechas | Total entrenamientos | Horas totales | Volumen principal | Carga semanal | Peso inicio/fin | % Grasa inicio/fin | Observaciones clave
+
+Identifica en cada semana:
+
+Sesiones clave completadas
+Mejores rendimientos
+Señales de fatiga o sobrecarga
+
+3. 🔍 PATRONES Y TENDENCIAS
+
+Evolución de la carga de entrenamiento (¿progresión adecuada?)
+Consistencia y adherencia (% de días entrenados)
+Tendencia en volumen e intensidad (ascendente/descendente/estable)
+Patrones de recuperación (distribución de días de descanso)
+Correlaciones entre volumen de entrenamiento y cambios corporales
+Identificación de ciclos de carga/descarga
+
+4. 💪 ANÁLISIS DE VARIEDAD Y BALANCE
+
+Diversidad de tipos de entrenamiento (score de variedad)
+Balance cardio vs. fuerza
+Balance de intensidades (bajo/medio/alto impacto)
+Áreas sub-representadas o sobre-representadas
+Recomendaciones para mejorar el balance
+
+5. ⚖️ EVOLUCIÓN DE COMPOSICIÓN CORPORAL
+
+Gráfico/descripción de tendencia de peso
+Gráfico/descripción de tendencia de % grasa
+Cambio total en el período (kg y %)
+Estimación de cambio en masa magra
+Velocidad de cambio (semanal/mensual)
+Correlación con volumen e intensidad de entrenamiento
+Valoración: ¿está alineado con los objetivos?
+
+6. ⚠️ SEÑALES DE ALERTA Y RIESGOS
+Identifica y prioriza:
+
+Riesgo de sobre-entrenamiento (carga excesiva, falta de recuperación)
+Sub-entrenamiento o estancamiento
+Incrementos bruscos de volumen (regla del 10%)
+Falta de variedad o monotonía de entrenamiento
+Desequilibrios que puedan causar lesiones
+Incoherencias entre esfuerzo y recuperación
+Cambios corporales demasiado rápidos o estancados
+
+7. 📈 COMPARACIÓN CON EL PLAN (si aplica)
+
+% de adherencia al plan prescrito
+Entrenamientos omitidos y su impacto
+Desviaciones significativas (más/menos volumen o intensidad)
+Sustituciones realizadas
+Valoración general del seguimiento
+
+8. 💡 RECOMENDACIONES PERSONALIZADAS
+Proporciona recomendaciones específicas sobre:
+A) Volumen de entrenamiento:
+
+¿Aumentar, mantener o reducir?
+Incremento/reducción sugerida (%)
+Enfoque para las próximas 2-4 semanas
+
+B) Variedad y tipos de entrenamiento:
+
+Actividades a incorporar o incrementar
+Actividades a reducir si hay exceso
+Balance ideal sugerido
+
+C) Intensidad y zonas de trabajo:
+
+Ajustes en distribución de intensidades
+Zonas específicas a entrenar más/menos
+Estrategias de polarización si aplica
+
+D) Composición corporal:
+
+Estrategias nutricionales sugeridas (general)
+Ajustes en tipo de entrenamiento para optimizar objetivos
+Expectativas realistas para próximo mes
+
+E) Recuperación y prevención:
+
+Días de descanso óptimos semanales
+Señales a monitorear
+Estrategias de recuperación activa
+
+F) Plan sugerido próximas 4 semanas:
+
+Estructura semanal recomendada
+Distribución de tipos de entrenamiento
+Foco principal de cada semana
+Micro-ciclos si aplica
+
+9. 📌 MÉTRICAS CLAVE A MONITOREAR
+Define 3-5 KPIs específicos que debo vigilar basándote en mis patrones:
+
+Métrica 1: [nombre] - Valor objetivo - Frecuencia de medición - Por qué es importante
+Métrica 2: ...
+[etc.]
+
+
+FORMATO DE RESPUESTA:
+
+Usa tablas para datos semanales y comparativos
+Destaca en negrita los insights más importantes
+Usa emojis para organización visual: 🏃 cardio | 💪 fuerza | 🚴 ciclismo | 🏊 natación | ⚖️ peso | 📊 datos | ⚠️ alertas | ✅ logros | 🎯 objetivos
+Sé específico con números y porcentajes
+Proporciona explicaciones breves del "por qué" detrás de cada recomendación
+Prioriza lo accionable sobre lo descriptivo
+Longitud: análisis completo pero conciso (~1500-2000 palabras)
+
+ESTILO:
+
+Profesional pero accesible
+Basado en evidencia y principios de entrenamiento
+Motivador pero realista
+Enfocado en soluciones y mejora continua

@@ -1,0 +1,23 @@
+# Credenciales y configuración sensible
+.env
+*.key
+
+# Entorno virtual
+venv/
+env/
+
+# Reportes y datos
+analysis_reports/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
