@@ -18,7 +18,7 @@ from src.config import Config
 
 
 # ========================================
-# CONFIGURACIIN Y MODELOS DE DATOS
+# CONFIGURACIÓN Y MODELOS DE DATOS
 # ========================================
 
 @dataclass
@@ -296,14 +296,14 @@ class TrainingAnalyzer:
         txt_path = Path(self.config.output_dir) / f"analisis_{timestamp}.txt"
         with open(txt_path, 'w', encoding='utf-8') as f:
             f.write("=" * 60 + "\n")
-            f.write("REPORTE DE ANILISIS DE ENTRENAMIENTO\n")
+            f.write("REPORTE DE ANÁLISIS DE ENTRENAMIENTO\n")
             f.write("=" * 60 + "\n\n")
             f.write(f"Atleta: {athlete_name}\n")
             f.write(f"Fecha: {current_date}\n")
-            f.write(f"Periodo analizado: Iltimos {self.config.analysis_days} dias\n")
+            f.write(f"Periodo analizado: Últimos {self.config.analysis_days} días\n")
             f.write(f"Actividades analizadas: {len(activities)}\n\n")
             f.write("=" * 60 + "\n")
-            f.write("ANILISIS Y RECOMENDACIONES\n")
+            f.write("ANÁLISIS Y RECOMENDACIONES\n")
             f.write("=" * 60 + "\n\n")
             f.write(analysis)
         
@@ -313,13 +313,13 @@ class TrainingAnalyzer:
         md_path = Path(self.config.output_dir) / f"analisis_{timestamp}.md"
         with open(md_path, 'w', encoding='utf-8') as f:
             # Header del documento
-            f.write(f"#  Reporte de Analisis de Entrenamiento\n\n")
+            f.write(f"#  Reporte de Análisis de Entrenamiento\n\n")
             
             # Metadata
             f.write(f"---\n\n")
             f.write(f"** Atleta:** {athlete_name}  \n")
-            f.write(f"** Fecha del analisis:** {current_date}  \n")
-            f.write(f"** Periodo analizado:** Iltimos {self.config.analysis_days} dias  \n")
+            f.write(f"** Fecha del análisis:** {current_date}  \n")
+            f.write(f"** Periodo analizado:** Últimos {self.config.analysis_days} días  \n")
             f.write(f"** Actividades analizadas:** {len(activities)}  \n")
             f.write(f"** Modelo usado:** {self.config.llm_provider.upper()} - {self._get_model_name()}  \n\n")
             f.write(f"---\n\n")
@@ -377,7 +377,7 @@ class TrainingAnalyzer:
     def _display_results(self, analysis: str) -> None:
         """Muestra los resultados en pantalla."""
         print("\n" + "=" * 60)
-        print(" ANILISIS Y RECOMENDACIONES")
+        print(" ANÁLISIS Y RECOMENDACIONES")
         print("=" * 60 + "\n")
         print(analysis)
         print("\n" + "=" * 60 + "\n")
@@ -386,20 +386,154 @@ class TrainingAnalyzer:
 # ========================================
 # PUNTO DE ENTRADA
 # ========================================
-def main():
-    """Funcion principal del programa."""
+def parse_arguments():
+    """Parsea argumentos de línea de comandos."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description='Sistema de Análisis de Entrenamiento Deportivo con Garmin Connect',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Ejemplos de uso:
+  %(prog)s
+  %(prog)s --days 60
+  %(prog)s --provider openai --days 90
+  %(prog)s --email user@example.com --password mypass --days 30
+
+Notas:
+  - Los argumentos CLI tienen prioridad sobre las variables de entorno
+  - Si no se especifican, se usan los valores de .env o los defaults
+        """
+    )
+
+    # Credenciales de Garmin
+    parser.add_argument(
+        '--email',
+        type=str,
+        help='Email de Garmin Connect (default: variable GARMIN_EMAIL)'
+    )
+    parser.add_argument(
+        '--password',
+        type=str,
+        help='Contraseña de Garmin Connect (default: variable GARMIN_PASSWORD)'
+    )
+
+    # Configuración de LLM
+    parser.add_argument(
+        '--provider',
+        type=str,
+        choices=['anthropic', 'openai', 'google'],
+        help='Proveedor de LLM a usar (default: variable LLM_PROVIDER o anthropic)'
+    )
+    parser.add_argument(
+        '--model',
+        type=str,
+        help='Modelo específico a usar (default: modelo por defecto del proveedor)'
+    )
+
+    # Parámetros de análisis
+    parser.add_argument(
+        '--days',
+        type=int,
+        help='Número de días a analizar (default: variable ANALYSIS_DAYS o 30)'
+    )
+    parser.add_argument(
+        '--output-dir',
+        type=str,
+        help='Directorio para guardar reportes (default: variable OUTPUT_DIR o analysis_reports)'
+    )
+    parser.add_argument(
+        '--training-plan',
+        type=str,
+        help='Ruta al archivo de plan de entrenamiento'
+    )
+
+    # Parámetros de LLM
+    parser.add_argument(
+        '--max-tokens',
+        type=int,
+        help='Máximo de tokens en respuesta (default: variable MAX_TOKENS o 3000)'
+    )
+    parser.add_argument(
+        '--temperature',
+        type=float,
+        help='Temperatura del modelo 0.0-1.0 (default: variable TEMPERATURE o 0.7)'
+    )
+
+    # Opciones de debugging
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Habilitar modo debug con logs detallados'
+    )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 1.0.0'
+    )
+
+    return parser.parse_args()
+
+
+def merge_config_with_args(args):
+    """
+    Combina argumentos CLI con variables de entorno.
+    Los argumentos CLI tienen prioridad.
+    """
     from dotenv import load_dotenv
-    
+    import os
+
     # Cargar variables de entorno
     load_dotenv()
-    
-    # Configuracion desde variables de entorno
+
+    # Configurar nivel de log según --debug
+    if args.debug:
+        os.environ['LOG_LEVEL'] = 'DEBUG'
+
+    # Sobrescribir variables de entorno con argumentos CLI si existen
+    if args.email:
+        os.environ['GARMIN_EMAIL'] = args.email
+    if args.password:
+        os.environ['GARMIN_PASSWORD'] = args.password
+    if args.provider:
+        os.environ['LLM_PROVIDER'] = args.provider
+    if args.days:
+        os.environ['ANALYSIS_DAYS'] = str(args.days)
+    if args.output_dir:
+        os.environ['OUTPUT_DIR'] = args.output_dir
+    if args.training_plan:
+        os.environ['TRAINING_PLAN_PATH'] = args.training_plan
+    if args.max_tokens:
+        os.environ['MAX_TOKENS'] = str(args.max_tokens)
+    if args.temperature:
+        os.environ['TEMPERATURE'] = str(args.temperature)
+
+    # Sobrescribir modelo específico si se proporciona
+    if args.model:
+        provider = os.getenv('LLM_PROVIDER', 'anthropic').lower()
+        if provider == 'anthropic':
+            os.environ['ANTHROPIC_MODEL'] = args.model
+        elif provider == 'openai':
+            os.environ['OPENAI_MODEL'] = args.model
+        elif provider == 'google':
+            os.environ['GOOGLE_MODEL'] = args.model
+
+
+def main():
+    """Función principal del programa."""
+    # Parsear argumentos de línea de comandos
+    args = parse_arguments()
+
+    # Combinar con variables de entorno
+    merge_config_with_args(args)
+
+    # Configuración desde variables de entorno (ya modificadas por args)
     config = AnalysisConfig.from_env()
-    
-    # Ejecutar analisis
+
+    # Ejecutar análisis
     analyzer = TrainingAnalyzer(config)
     success = analyzer.run_analysis()
-    
+
     return 0 if success else 1
 
 
