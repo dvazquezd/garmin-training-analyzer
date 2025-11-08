@@ -166,14 +166,22 @@ class TrainingAnalyzer:
         self.config = config
         self.llm_provider = Config.LLM_PROVIDER  #  Anade esta linea
         self.logger = self._setup_logging()
-        
-        
-        # Inicializar componentes
-        self.garmin_client = GarminClient(config.garmin_email, config.garmin_password)
+
+
+        # Inicializar componentes con configuración de caché
+        use_cache = os.getenv('USE_CACHE', 'true').lower() == 'true'
+        cache_ttl_hours = int(os.getenv('CACHE_TTL_HOURS', '24'))
+
+        self.garmin_client = GarminClient(
+            config.garmin_email,
+            config.garmin_password,
+            use_cache=use_cache,
+            cache_ttl_hours=cache_ttl_hours
+        )
         self.tp_manager = TrainingPeaksManager(config.training_plan_path)
         self.llm_analyzer = LLMAnalyzer()
 
-        
+
         # Crear directorio de salida
         Path(config.output_dir).mkdir(exist_ok=True)
     
@@ -460,6 +468,23 @@ Notas:
         help='Temperatura del modelo 0.0-1.0 (default: variable TEMPERATURE o 0.7)'
     )
 
+    # Opciones de caché
+    parser.add_argument(
+        '--no-cache',
+        action='store_true',
+        help='Deshabilitar caché de datos de Garmin'
+    )
+    parser.add_argument(
+        '--cache-ttl',
+        type=int,
+        help='Tiempo de vida del caché en horas (default: 24)'
+    )
+    parser.add_argument(
+        '--clear-cache',
+        action='store_true',
+        help='Limpiar caché antes de ejecutar'
+    )
+
     # Opciones de debugging
     parser.add_argument(
         '--debug',
@@ -518,6 +543,12 @@ def merge_config_with_args(args):
         elif provider == 'google':
             os.environ['GOOGLE_MODEL'] = args.model
 
+    # Configuración de caché
+    if args.no_cache:
+        os.environ['USE_CACHE'] = 'false'
+    if args.cache_ttl:
+        os.environ['CACHE_TTL_HOURS'] = str(args.cache_ttl)
+
 
 def main():
     """Función principal del programa."""
@@ -526,6 +557,13 @@ def main():
 
     # Combinar con variables de entorno
     merge_config_with_args(args)
+
+    # Si se solicita limpiar caché, hacerlo antes
+    if args.clear_cache:
+        from src.cache_manager import CacheManager
+        cache = CacheManager()
+        cache.clear_all()
+        print("✓ Caché limpiado exitosamente")
 
     # Configuración desde variables de entorno (ya modificadas por args)
     config = AnalysisConfig.from_env()
