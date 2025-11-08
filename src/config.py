@@ -17,7 +17,7 @@ class Config:
     GARMIN_PASSWORD: str = os.getenv('GARMIN_PASSWORD', '')
     
     # ========================================
-    # CONFIGURACIIN DE LLM
+    # CONFIGURACIÓN DE LLM
     # ========================================
     LLM_PROVIDER: str = os.getenv('LLM_PROVIDER', 'anthropic').lower()
     
@@ -92,7 +92,7 @@ class Config:
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("VERIFICACIIN DE CONFIGURACIIN")
+    print("VERIFICACIÓN DE CONFIGURACIÓN")
     print("=" * 60)
     
     is_valid, errors = Config.validate()
