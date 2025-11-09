@@ -184,7 +184,7 @@ class HTMLReporter:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de Análisis de Entrenamiento - {{ athlete_name }}</title>
+    <title>{{ athlete_name }} - Training Analysis</title>
     <style>
         * {
             margin: 0;
@@ -193,279 +193,363 @@ class HTMLReporter:
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Arial', sans-serif;
+            background: #ffffff;
+            color: #000000;
             line-height: 1.6;
+            letter-spacing: 0.3px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+            background: #ffffff;
         }
 
+        /* Header minimalista estilo Zara */
         .header {
-            background: linear-gradient(135deg, #2E86AB 0%, #1a4d66 100%);
-            color: white;
-            padding: 40px;
+            background: #000000;
+            color: #ffffff;
+            padding: 60px 40px;
             text-align: center;
+            border-bottom: 1px solid #000000;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
         }
 
         .header .subtitle {
-            font-size: 1.2em;
-            opacity: 0.9;
+            font-size: 0.95em;
+            font-weight: 300;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            text-transform: uppercase;
         }
 
+        /* Metadata minimalista */
         .metadata {
-            background: #f8f9fa;
-            padding: 20px 40px;
-            border-bottom: 2px solid #e9ecef;
+            background: #f5f5f5;
+            padding: 30px 60px;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .metadata-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .metadata-item {
-            padding: 10px;
+            text-align: left;
         }
 
         .metadata-item .label {
-            font-size: 0.85em;
-            color: #6c757d;
+            font-size: 0.75em;
+            color: #666666;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            font-weight: 400;
         }
 
         .metadata-item .value {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: #2E86AB;
-            margin-top: 5px;
+            font-size: 1em;
+            font-weight: 400;
+            color: #000000;
+            letter-spacing: 0.5px;
         }
 
+        /* Stats grid limpio */
         .stats {
-            padding: 40px;
+            padding: 60px 40px;
             background: white;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .stats h2 {
-            color: #2E86AB;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #2E86AB;
-            padding-bottom: 10px;
+            color: #000000;
+            margin-bottom: 40px;
+            font-size: 1.4em;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
             margin-bottom: 30px;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #2E86AB;
-            transition: transform 0.2s;
+            background: #ffffff;
+            padding: 30px 20px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            text-align: center;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #000000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .stat-card .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #2E86AB;
+            font-size: 2.2em;
+            font-weight: 300;
+            color: #000000;
+            letter-spacing: 1px;
         }
 
         .stat-card .stat-label {
-            font-size: 0.9em;
-            color: #6c757d;
+            font-size: 0.75em;
+            color: #666666;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 5px;
+            letter-spacing: 1.5px;
+            margin-top: 10px;
+            font-weight: 400;
         }
 
+        /* Secciones de contenido */
         .content {
-            padding: 40px;
+            padding: 60px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .section {
-            margin-bottom: 40px;
+            margin-bottom: 80px;
         }
 
         .section h2 {
-            color: #2E86AB;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #2E86AB;
-            padding-bottom: 10px;
-            font-size: 1.8em;
+            color: #000000;
+            margin-bottom: 40px;
+            font-size: 1.4em;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
         }
 
+        /* Tabla minimalista */
         .activities-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            overflow: hidden;
-            border-radius: 8px;
+            margin-top: 30px;
+            font-size: 0.9em;
         }
 
         .activities-table th {
-            background: #2E86AB;
-            color: white;
-            padding: 15px;
+            background: #000000;
+            color: #ffffff;
+            padding: 15px 20px;
             text-align: left;
-            font-weight: 600;
+            font-weight: 400;
+            font-size: 0.75em;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
 
         .activities-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #000000;
+            letter-spacing: 0.3px;
         }
 
         .activities-table tr:hover {
-            background: #f8f9fa;
+            background: #f5f5f5;
         }
 
-        .activities-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-
+        /* Gráficos limpios */
         .chart {
-            margin: 30px 0;
+            margin: 40px 0;
             text-align: center;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .chart h3 {
+            font-size: 1em;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            color: #000000;
         }
 
         .chart img {
             max-width: 100%;
             height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
         }
 
+        /* Análisis minimalista */
         .analysis {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 8px;
-            border-left: 4px solid #A23B72;
-            line-height: 1.8;
-            font-size: 1.05em;
+            background: #f5f5f5;
+            padding: 50px 40px;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            line-height: 1.9;
+            font-size: 1em;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
         .analysis h1, .analysis h2, .analysis h3 {
-            color: #2E86AB;
-            margin-top: 20px;
-            margin-bottom: 10px;
+            color: #000000;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .analysis h1 {
-            font-size: 1.8em;
-            border-bottom: 2px solid #2E86AB;
-            padding-bottom: 10px;
+            font-size: 1.6em;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 15px;
         }
 
         .analysis h2 {
-            font-size: 1.5em;
-            border-bottom: 1px solid #2E86AB;
-            padding-bottom: 8px;
+            font-size: 1.3em;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 12px;
         }
 
         .analysis h3 {
-            font-size: 1.3em;
+            font-size: 1.1em;
         }
 
         .analysis p {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            color: #333333;
+            letter-spacing: 0.3px;
         }
 
         .analysis ul, .analysis ol {
-            margin-left: 25px;
-            margin-bottom: 15px;
+            margin-left: 30px;
+            margin-bottom: 20px;
+            color: #333333;
         }
 
         .analysis li {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            line-height: 1.8;
         }
 
         .analysis strong {
-            color: #A23B72;
-            font-weight: 600;
+            color: #000000;
+            font-weight: 500;
         }
 
         .analysis em {
             font-style: italic;
-            color: #6c757d;
+            color: #666666;
         }
 
         .analysis code {
-            background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 3px;
+            background: #e0e0e0;
+            padding: 3px 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
+            letter-spacing: 0;
         }
 
         .analysis pre {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 5px;
+            background: #e0e0e0;
+            padding: 20px;
             overflow-x: auto;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
         }
 
         .analysis blockquote {
-            border-left: 4px solid #2E86AB;
-            padding-left: 20px;
-            margin: 15px 0;
-            color: #6c757d;
+            border-left: 2px solid #000000;
+            padding-left: 25px;
+            margin: 25px 0;
+            color: #666666;
             font-style: italic;
         }
 
+        /* Footer minimalista */
         .footer {
-            background: #2E86AB;
-            color: white;
-            padding: 20px;
+            background: #000000;
+            color: #ffffff;
+            padding: 40px 20px;
             text-align: center;
+            border-top: 1px solid #000000;
         }
 
         .footer p {
-            opacity: 0.9;
+            font-size: 0.8em;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            font-weight: 300;
         }
 
+        /* Responsive design */
         @media (max-width: 768px) {
+            .header {
+                padding: 40px 20px;
+            }
+
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.5em;
+                letter-spacing: 2px;
+            }
+
+            .header .subtitle {
+                font-size: 0.8em;
+            }
+
+            .metadata {
+                padding: 20px 20px;
             }
 
             .stats-grid,
             .metadata-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
 
             .content {
-                padding: 20px;
+                padding: 40px 20px;
+            }
+
+            .section h2 {
+                font-size: 1.2em;
             }
 
             .activities-table {
-                font-size: 0.9em;
+                font-size: 0.85em;
+            }
+
+            .activities-table th,
+            .activities-table td {
+                padding: 10px 8px;
+            }
+
+            .analysis {
+                padding: 30px 20px;
+            }
+
+            .stat-card {
+                padding: 25px 15px;
             }
         }
     </style>
@@ -474,7 +558,7 @@ class HTMLReporter:
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>📊 Reporte de Análisis de Entrenamiento</h1>
+            <h1>Training Analysis Report</h1>
             <p class="subtitle">{{ athlete_name }}</p>
         </div>
 
@@ -482,19 +566,19 @@ class HTMLReporter:
         <div class="metadata">
             <div class="metadata-grid">
                 <div class="metadata-item">
-                    <div class="label">Fecha del Reporte</div>
+                    <div class="label">Report Date</div>
                     <div class="value">{{ report_date }}</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="label">Periodo Analizado</div>
-                    <div class="value">Últimos {{ analysis_days }} días</div>
+                    <div class="label">Analysis Period</div>
+                    <div class="value">Last {{ analysis_days }} days</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="label">Modelo IA</div>
+                    <div class="label">AI Model</div>
                     <div class="value">{{ llm_provider }} - {{ llm_model }}</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="label">Actividades</div>
+                    <div class="label">Total Activities</div>
                     <div class="value">{{ total_activities }}</div>
                 </div>
             </div>
@@ -502,30 +586,30 @@ class HTMLReporter:
 
         <!-- Statistics -->
         <div class="stats">
-            <h2>📈 Resumen de Estadísticas</h2>
+            <h2>Performance Metrics</h2>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value">{{ "%.2f"|format(total_distance) }}</div>
-                    <div class="stat-label">Kilómetros Totales</div>
+                    <div class="stat-label">Total Kilometers</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ "%.0f"|format(total_duration / 60) }}</div>
-                    <div class="stat-label">Horas de Entrenamiento</div>
+                    <div class="stat-label">Training Hours</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ "%.0f"|format(total_calories) }}</div>
-                    <div class="stat-label">Calorías Quemadas</div>
+                    <div class="stat-label">Calories Burned</div>
                 </div>
                 {% if avg_hr > 0 %}
                 <div class="stat-card">
                     <div class="stat-value">{{ "%.0f"|format(avg_hr) }}</div>
-                    <div class="stat-label">FC Promedio (bpm)</div>
+                    <div class="stat-label">Avg Heart Rate</div>
                 </div>
                 {% endif %}
                 {% if weight_change %}
                 <div class="stat-card">
                     <div class="stat-value">{{ "%.1f"|format(weight_change) }} kg</div>
-                    <div class="stat-label">Cambio de Peso</div>
+                    <div class="stat-label">Weight Change</div>
                 </div>
                 {% endif %}
             </div>
@@ -535,33 +619,33 @@ class HTMLReporter:
         {% if charts %}
         <div class="content">
             <div class="section">
-                <h2>📊 Visualizaciones</h2>
+                <h2>Data Visualizations</h2>
 
                 {% if charts.body_composition %}
                 <div class="chart">
-                    <h3>Evolución de Composición Corporal</h3>
-                    <img src="{{ charts.body_composition }}" alt="Composición Corporal">
+                    <h3>Body Composition Evolution</h3>
+                    <img src="{{ charts.body_composition }}" alt="Body Composition">
                 </div>
                 {% endif %}
 
                 {% if charts.activity_distribution %}
                 <div class="chart">
-                    <h3>Distribución de Tipos de Actividad</h3>
-                    <img src="{{ charts.activity_distribution }}" alt="Distribución de Actividades">
+                    <h3>Activity Type Distribution</h3>
+                    <img src="{{ charts.activity_distribution }}" alt="Activity Distribution">
                 </div>
                 {% endif %}
 
                 {% if charts.weekly_volume %}
                 <div class="chart">
-                    <h3>Volumen Semanal</h3>
-                    <img src="{{ charts.weekly_volume }}" alt="Volumen Semanal">
+                    <h3>Weekly Training Volume</h3>
+                    <img src="{{ charts.weekly_volume }}" alt="Weekly Volume">
                 </div>
                 {% endif %}
 
                 {% if charts.heart_rate_zones %}
                 <div class="chart">
-                    <h3>Distribución de Frecuencia Cardíaca</h3>
-                    <img src="{{ charts.heart_rate_zones }}" alt="Zonas de Frecuencia Cardíaca">
+                    <h3>Heart Rate Distribution</h3>
+                    <img src="{{ charts.heart_rate_zones }}" alt="Heart Rate Zones">
                 </div>
                 {% endif %}
             </div>
@@ -571,17 +655,17 @@ class HTMLReporter:
         <!-- Activities Table -->
         <div class="content">
             <div class="section">
-                <h2>🏃 Detalle de Actividades</h2>
+                <h2>Activity Details</h2>
                 <table class="activities-table">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Nombre</th>
-                            <th>Tipo</th>
-                            <th>Fecha</th>
-                            <th>Distancia (km)</th>
-                            <th>Duración (min)</th>
-                            <th>FC Avg</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Distance (km)</th>
+                            <th>Duration (min)</th>
+                            <th>Avg HR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -604,14 +688,14 @@ class HTMLReporter:
         <!-- Analysis -->
         <div class="content">
             <div class="section">
-                <h2>🤖 Análisis y Recomendaciones</h2>
+                <h2>AI Analysis & Recommendations</h2>
                 <div class="analysis">{{ analysis|safe }}</div>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p>Generado automáticamente por el Sistema de Análisis de Entrenamiento</p>
+            <p>Training Analysis System</p>
             <p>{{ report_date }}</p>
         </div>
     </div>
