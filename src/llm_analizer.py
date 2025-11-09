@@ -286,42 +286,47 @@ class LLMAnalyzer:
                         text += f"  Peso: {weight:.1f} kg\n"
                 
                 # IMC
-                if 'bmi' in measure:
-                    text += f"  IMC: {measure['bmi']:.1f}\n"
-                
+                bmi = measure.get('bmi')
+                if bmi is not None:
+                    text += f"  IMC: {bmi:.1f}\n"
+
                 # % Grasa corporal
-                if 'bodyFat' in measure:
-                    text += f"  % Grasa: {measure['bodyFat']:.1f}%\n"
-                
+                body_fat = measure.get('bodyFat')
+                if body_fat is not None:
+                    text += f"  % Grasa: {body_fat:.1f}%\n"
+
                 # % Agua corporal
-                if 'bodyWater' in measure:
-                    text += f"  % Agua: {measure['bodyWater']:.1f}%\n"
-                
+                body_water = measure.get('bodyWater')
+                if body_water is not None:
+                    text += f"  % Agua: {body_water:.1f}%\n"
+
                 # Masa muscular (convertir de gramos a kg si es necesario)
-                if 'muscleMass' in measure:
-                    muscle = measure['muscleMass']
+                muscle = measure.get('muscleMass')
+                if muscle is not None:
                     if muscle > 500:
                         muscle_kg = muscle / 1000
                         text += f"  Masa muscular: {muscle_kg:.1f} kg\n"
                     else:
                         text += f"  Masa muscular: {muscle:.1f} kg\n"
-                
+
                 # Masa ósea (convertir de gramos a kg si es necesario)
-                if 'boneMass' in measure:
-                    bone = measure['boneMass']
+                bone = measure.get('boneMass')
+                if bone is not None:
                     if bone > 100:
                         bone_kg = bone / 1000
                         text += f"  Masa osea: {bone_kg:.1f} kg\n"
                     else:
                         text += f"  Masa osea: {bone:.1f} kg\n"
-                
+
                 # Grasa visceral
-                if 'visceralFat' in measure:
-                    text += f"  Grasa visceral: {measure['visceralFat']}\n"
-                
+                visceral_fat = measure.get('visceralFat')
+                if visceral_fat is not None:
+                    text += f"  Grasa visceral: {visceral_fat}\n"
+
                 # Edad metabólica
-                if 'metabolicAge' in measure:
-                    text += f"  Edad metabolica: {measure['metabolicAge']} anos\n"
+                metabolic_age = measure.get('metabolicAge')
+                if metabolic_age is not None:
+                    text += f"  Edad metabolica: {metabolic_age} anos\n"
                 
                 text += "\n"
         else:
