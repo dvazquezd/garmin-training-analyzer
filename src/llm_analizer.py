@@ -277,14 +277,14 @@ class LLMAnalyzer:
                 
                 # Peso (convertir de gramos a kg si es necesario)
                 weight = measure.get('weight')
-                if weight:
+                if weight is not None:
                     # Si el peso es > 500, probablemente está en gramos
                     if weight > 500:
                         weight_kg = weight / 1000
                         text += f"  Peso: {weight_kg:.1f} kg\n"
                     else:
                         text += f"  Peso: {weight:.1f} kg\n"
-                
+
                 # IMC
                 bmi = measure.get('bmi')
                 if bmi is not None:
