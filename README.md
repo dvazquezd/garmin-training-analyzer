@@ -12,9 +12,15 @@
 - 🤖 **Multi-LLM Support**: Works with Claude (Anthropic), GPT-4 (OpenAI), and Gemini (Google)
 - 📊 **Intelligent Analysis**: Generates personalized insights about your training
 - 📈 **Body Composition Tracking**: Monitor weight, body fat %, muscle mass, and more
-- 📝 **Professional Reports**: Export in TXT, Markdown, and JSON formats
-- ⚙️ **Highly Configurable**: Adjust analysis period, LLM models, and parameters
+- 📊 **Data Visualizations**: Beautiful charts with matplotlib (weight evolution, activity distribution, HR zones, weekly volume)
+- 📝 **Professional Reports**: Export in TXT, Markdown, JSON, and **interactive HTML** formats
+- 🎨 **HTML Reports**: Responsive design with embedded charts, statistics cards, and modern styling
+- 💾 **Smart Caching**: SQLite-based cache to reduce API calls and improve performance
+- 🔄 **Rate Limiting**: Automatic retry with exponential backoff for API resilience
+- ⚙️ **Highly Configurable**: Adjust analysis period, LLM models, parameters, and cache settings
+- 🖥️ **CLI Arguments**: Full command-line interface support for all configuration options
 - 🎨 **Custom Prompts**: External prompt management for easy customization
+- 🧪 **Testing Suite**: Comprehensive tests with pytest
 
 ## 📋 Table of Contents
 
@@ -84,6 +90,10 @@ ANTHROPIC_API_KEY=sk-ant-xxxxx
 ANALYSIS_DAYS=60           # Days to analyze (default: 30)
 MAX_TOKENS=3000           # Max response tokens
 TEMPERATURE=0.7           # Model temperature
+
+# Cache Settings (NEW!)
+USE_CACHE=true            # Enable local cache (default: true)
+CACHE_TTL_HOURS=24        # Cache expiration in hours
 ```
 
 ### Switching LLM Providers
@@ -116,18 +126,35 @@ garmin-training-analyzer/
 ├── src/                           # Source code
 │   ├── __init__.py
 │   ├── config.py                  # Configuration management
-│   ├── garmin_client.py           # Garmin Connect client
+│   ├── garmin_client.py           # Garmin Connect client with cache & retry
 │   ├── llm_analizer.py            # LLM analyzer
-│   └── prompt_manager.py          # Prompt management
+│   ├── prompt_manager.py          # Prompt management
+│   ├── cache_manager.py           # SQLite-based cache system (NEW!)
+│   ├── visualizations.py          # Matplotlib chart generator (NEW!)
+│   └── html_reporter.py           # HTML report generator (NEW!)
 │
 ├── prompts/                       # External prompts
 │   ├── system_prompt.txt          # System instructions
 │   └── user_prompt_template.txt  # User data template
 │
+├── tests/                         # Test suite (NEW!)
+│   ├── conftest.py                # Pytest fixtures
+│   ├── test_config.py             # Config tests
+│   ├── test_garmin_client.py      # Client tests
+│   └── test_prompt_manager.py     # Prompt tests
+│
 ├── analysis_reports/              # Generated reports
 │   ├── analisis_YYYYMMDD.txt      # Text format
 │   ├── analisis_YYYYMMDD.md       # Markdown format
-│   └── datos_YYYYMMDD.json        # JSON format
+│   ├── datos_YYYYMMDD.json        # JSON format
+│   ├── reporte_YYYYMMDD.html      # HTML format (NEW!)
+│   ├── body_composition_*.png     # Weight & body fat charts (NEW!)
+│   ├── activity_distribution_*.png # Activity pie chart (NEW!)
+│   ├── weekly_volume_*.png        # Weekly volume bars (NEW!)
+│   └── heart_rate_zones_*.png     # HR histogram (NEW!)
+│
+├── .cache/                        # Cache directory (NEW!)
+│   └── garmin_cache.db            # SQLite cache database
 │
 ├── training_analyzer.py           # Main script
 ├── requirements.txt               # Python dependencies
@@ -222,6 +249,7 @@ python training_analyzer.py
 
 ### Advanced Usage
 
+#### Using Environment Variables
 ```bash
 # Analyze last 60 days
 export ANALYSIS_DAYS=60
@@ -232,25 +260,67 @@ export LLM_PROVIDER=openai
 python training_analyzer.py
 ```
 
+#### Using CLI Arguments (NEW!)
+```bash
+# Analyze specific period
+python training_analyzer.py --days 60
+
+# Use different provider and model
+python training_analyzer.py --provider openai --model gpt-4o
+
+# Override credentials
+python training_analyzer.py --email user@example.com --password mypass
+
+# Cache management
+python training_analyzer.py --no-cache           # Disable cache
+python training_analyzer.py --cache-ttl 48       # Cache expires in 48h
+python training_analyzer.py --clear-cache        # Clear cache first
+
+# Debug mode
+python training_analyzer.py --debug
+
+# Combine options
+python training_analyzer.py --days 90 --provider anthropic --cache-ttl 12
+```
+
+#### View All Options
+```bash
+python training_analyzer.py --help
+```
+
 ### Output Files
 
-The analyzer generates three types of reports in `analysis_reports/`:
+The analyzer generates multiple report formats in `analysis_reports/`:
 
-1. **Text Report** (`analisis_YYYYMMDD_HHMMSS.txt`)
+1. **HTML Report** (`reporte_YYYYMMDD_HHMMSS.html`) **⭐ NEW!**
+   - Interactive, responsive design
+   - Embedded charts and visualizations
+   - Statistics cards with key metrics
+   - Activity table with all details
+   - Beautiful gradient styling
+   - **Best for sharing and viewing**
+
+2. **Text Report** (`analisis_YYYYMMDD_HHMMSS.txt`)
    - Plain text format
    - Easy to read
    - Includes metadata
 
-2. **Markdown Report** (`analisis_YYYYMMDD_HHMMSS.md`)
+3. **Markdown Report** (`analisis_YYYYMMDD_HHMMSS.md`)
    - Formatted with tables
    - Activity summaries
    - Proper sectioning
 
-3. **JSON Data** (`datos_YYYYMMDD_HHMMSS.json`)
+4. **JSON Data** (`datos_YYYYMMDD_HHMMSS.json`)
    - Raw data export
    - All activities
    - Body composition
    - Analysis text
+
+5. **Visualizations** (PNG charts) **⭐ NEW!**
+   - `body_composition_*.png` - Weight and body fat % evolution
+   - `activity_distribution_*.png` - Pie chart of activity types
+   - `weekly_volume_*.png` - Bar charts of weekly distance and activity count
+   - `heart_rate_zones_*.png` - Histogram of heart rate distribution
 
 ## 🔧 Development
 
@@ -271,14 +341,26 @@ python -m src.prompt_manager
 
 # Verify general configuration
 python -m src.config
+
+# Check cache statistics (NEW!)
+python -m src.cache_manager
+
+# Test visualizations (NEW!)
+python -m src.visualizations
+
+# Test HTML reporter (NEW!)
+python -m src.html_reporter
 ```
 
 ### Code Structure
 
-- **GarminClient**: Handles all Garmin Connect API interactions
+- **GarminClient**: Handles all Garmin Connect API interactions with caching and retry logic
 - **LLMAnalyzer**: Manages LLM integration and prompt processing
 - **PromptManager**: External prompt file management
 - **Config**: Centralized configuration management
+- **CacheManager**: SQLite-based caching system with TTL expiration (NEW!)
+- **TrainingVisualizer**: Matplotlib chart generation for training data (NEW!)
+- **HTMLReporter**: HTML report generator with responsive design (NEW!)
 
 ## 📊 Example Report
 
@@ -333,12 +415,32 @@ Muscle mass: Maintained
 - Check token limits
 - Ensure provider is correctly set
 
+### Cache Issues
+
+**Cache not working:**
+- Check if `.cache/` directory exists and is writable
+- Verify `USE_CACHE=true` in `.env`
+- Run `--clear-cache` to reset
+
+**Stale data:**
+- Reduce `CACHE_TTL_HOURS` for more frequent updates
+- Use `--no-cache` flag for one-time fresh data
+- Run `--clear-cache` to force refresh
+
+**View cache statistics:**
+```bash
+python -m src.cache_manager
+```
+
 ### Debug Mode
 
 ```bash
 # Enable debug logging
 export LOG_LEVEL=DEBUG
 python training_analyzer.py
+
+# Or use CLI flag
+python training_analyzer.py --debug
 ```
 
 ## 🤝 Contributing
@@ -362,6 +464,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Anthropic](https://www.anthropic.com/) - Claude API
 - [OpenAI](https://openai.com/) - GPT API
 - [Google](https://ai.google.dev/) - Gemini API
+- [matplotlib](https://matplotlib.org/) - Plotting library for visualizations
+- [Jinja2](https://jinja.palletsprojects.com/) - Template engine for HTML reports
+- [pytest](https://pytest.org/) - Testing framework
 
 ## 📧 Contact
 
