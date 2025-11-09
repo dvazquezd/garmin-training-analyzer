@@ -319,9 +319,9 @@ class LLMAnalyzer:
                         text += f"  Masa osea: {bone:.1f} kg\n"
 
                 # Grasa visceral
-                visceral = measure.get('visceralFat')
-                if visceral is not None:
-                    text += f"  Grasa visceral: {visceral}\n"
+                visceral_fat = measure.get('visceralFat')
+                if visceral_fat is not None:
+                    text += f"  Grasa visceral: {visceral_fat}\n"
 
                 # Edad metabólica
                 metabolic_age = measure.get('metabolicAge')
