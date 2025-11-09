@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from jinja2 import Template
+import markdown
 
 
 class HTMLReporter:
@@ -365,9 +366,77 @@ class HTMLReporter:
             padding: 30px;
             border-radius: 8px;
             border-left: 4px solid #A23B72;
-            white-space: pre-wrap;
             line-height: 1.8;
             font-size: 1.05em;
+        }
+
+        .analysis h1, .analysis h2, .analysis h3 {
+            color: #2E86AB;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .analysis h1 {
+            font-size: 1.8em;
+            border-bottom: 2px solid #2E86AB;
+            padding-bottom: 10px;
+        }
+
+        .analysis h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #2E86AB;
+            padding-bottom: 8px;
+        }
+
+        .analysis h3 {
+            font-size: 1.3em;
+        }
+
+        .analysis p {
+            margin-bottom: 15px;
+        }
+
+        .analysis ul, .analysis ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .analysis li {
+            margin-bottom: 8px;
+        }
+
+        .analysis strong {
+            color: #A23B72;
+            font-weight: 600;
+        }
+
+        .analysis em {
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        .analysis code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .analysis pre {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        .analysis blockquote {
+            border-left: 4px solid #2E86AB;
+            padding-left: 20px;
+            margin: 15px 0;
+            color: #6c757d;
+            font-style: italic;
         }
 
         .footer {
@@ -536,7 +605,7 @@ class HTMLReporter:
         <div class="content">
             <div class="section">
                 <h2>🤖 Análisis y Recomendaciones</h2>
-                <div class="analysis">{{ analysis }}</div>
+                <div class="analysis">{{ analysis|safe }}</div>
             </div>
         </div>
 
@@ -551,6 +620,12 @@ class HTMLReporter:
 
         template = Template(template_str)
 
+        # Convertir el análisis de markdown a HTML
+        analysis_html = markdown.markdown(
+            analysis,
+            extensions=['extra', 'nl2br', 'sane_lists']
+        )
+
         return template.render(
             athlete_name=user_profile.get('name', 'Usuario'),
             report_date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -564,7 +639,7 @@ class HTMLReporter:
             avg_hr=stats.get('avg_hr', 0),
             weight_change=stats.get('weight_change'),
             activities=activities,
-            analysis=analysis,
+            analysis=analysis_html,
             charts=charts
         )
 
