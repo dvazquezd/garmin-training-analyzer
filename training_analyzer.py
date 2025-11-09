@@ -14,6 +14,8 @@ from pathlib import Path
 from src.garmin_client import GarminClient
 from src.llm_analizer import LLMAnalyzer
 from src.config import Config
+from src.visualizations import TrainingVisualizer
+from src.html_reporter import HTMLReporter
 
 
 
@@ -181,9 +183,12 @@ class TrainingAnalyzer:
         self.tp_manager = TrainingPeaksManager(config.training_plan_path)
         self.llm_analyzer = LLMAnalyzer()
 
-
         # Crear directorio de salida
         Path(config.output_dir).mkdir(exist_ok=True)
+
+        # Inicializar visualizador y reporteador HTML
+        self.visualizer = TrainingVisualizer(config.output_dir)
+        self.html_reporter = HTMLReporter(config.output_dir)
     
     def _setup_logging(self) -> logging.Logger:
         """Configura el sistema de logging."""
@@ -279,7 +284,7 @@ class TrainingAnalyzer:
             return False
         
         # 9. Guardar resultados
-        self._save_results(activities, analysis, user_profile)
+        self._save_results(activities, analysis, user_profile, body_composition)
         
         # 10. Mostrar resultados
         self._display_results(analysis)
@@ -291,12 +296,28 @@ class TrainingAnalyzer:
         self,
         activities: List[ActivityData],
         analysis: str,
-        user_profile: Dict[str, Any]
+        user_profile: Dict[str, Any],
+        body_composition: List[Dict] = None
     ) -> None:
         """Guarda los resultados del analisis en TXT, Markdown y JSON."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         athlete_name = user_profile.get('name', 'Usuario')
         current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Generar visualizaciones
+        if body_composition is None:
+            body_composition = []
+
+        self.logger.info("Generando gráficos...")
+        charts = self.visualizer.generate_all_charts(
+            activities,
+            body_composition,
+            timestamp
+        )
+        if charts:
+            self.logger.info(f"✓ {len(charts)} gráfico(s) generado(s):")
+            for chart_type, chart_path in charts.items():
+                self.logger.info(f"    {chart_type}: {chart_path}")
         
         # ========================================
         # 1. GUARDAR EN FORMATO TEXTO (.txt)
@@ -371,11 +392,34 @@ class TrainingAnalyzer:
                 "analysis": analysis
             }, f, indent=2, ensure_ascii=False)
         
+        # ========================================
+        # 4. GUARDAR EN FORMATO HTML (.html)
+        # ========================================
+        try:
+            html_path = self.html_reporter.generate_report(
+                activities=activities,
+                analysis=analysis,
+                user_profile=user_profile,
+                body_composition=body_composition,
+                charts=charts,
+                config={
+                    'analysis_days': self.config.analysis_days,
+                    'llm_provider': self.config.llm_provider,
+                    'llm_model': self._get_model_name()
+                },
+                timestamp=timestamp
+            )
+        except Exception as e:
+            self.logger.error(f"Error generando reporte HTML: {e}")
+            html_path = None
+
         # Log de archivos generados
         self.logger.info(f" Resultados guardados:")
         self.logger.info(f"    Texto: {txt_path}")
         self.logger.info(f"    Markdown: {md_path}")
         self.logger.info(f"    JSON: {json_path}")
+        if html_path:
+            self.logger.info(f"    HTML: {html_path}")
 
     def _get_model_name(self) -> str:
         """Obtiene el nombre del modelo usado."""
