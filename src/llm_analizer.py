@@ -153,7 +153,7 @@ class LLMAnalyzer:
     # MÉTODOS PÚBLICOS: ANÁLISIS
     # ========================================
 
-    def analyze_training(
+    def analyze_training(  # pylint: disable=too-many-positional-arguments,too-many-arguments
         self,
         activities: List[Any],
         activities_details: List[Dict],
@@ -208,7 +208,7 @@ class LLMAnalyzer:
     # METODOS PRIVADOS: FORMATEO
     # ========================================
 
-    def _format_all_data(
+    def _format_all_data(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,unused-argument
         self,
         activities: List[Any],
         activities_details: List[Dict],

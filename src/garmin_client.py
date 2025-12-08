@@ -252,7 +252,7 @@ class GarminClient:
         """Obtiene composición corporal de la API de Garmin con retry."""
         return self.client.get_body_composition(start_str, end_str)
 
-    def get_body_composition(self, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
+    def get_body_composition(self, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:  # pylint: disable=too-many-branches
         """
         Obtiene datos de composicion corporal (peso, % grasa) en un rango de fechas.
 
