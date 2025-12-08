@@ -74,11 +74,11 @@ class HTMLReporter:
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html_content)
 
-            self.logger.info(f"Reporte HTML generado: {output_path}")
+            self.logger.info("Reporte HTML generado: %s", output_path)
             return output_path
 
         except Exception as e:
-            self.logger.error(f"Error generando reporte HTML: {e}")
+            self.logger.error("Error generando reporte HTML: %s", e)
             raise
 
     def _embed_charts(self, charts: Dict[str, Path]) -> Dict[str, str]:
@@ -100,7 +100,7 @@ class HTMLReporter:
                         base64_data = base64.b64encode(img_data).decode('utf-8')
                         embedded[chart_type] = f"data:image/png;base64,{base64_data}"
             except Exception as e:
-                self.logger.warning(f"No se pudo embeber gráfico {chart_type}: {e}")
+                self.logger.warning("No se pudo embeber gráfico %s: %s", chart_type, e)
 
         return embedded
 

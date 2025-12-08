@@ -5,14 +5,15 @@ Tests connection and displays body composition structure.
 
 import json
 import logging
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-import sys
+
+from dotenv import load_dotenv
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
 from src.garmin_client import GarminClient
 from src.config import Config
 

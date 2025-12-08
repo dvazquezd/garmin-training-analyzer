@@ -4,20 +4,17 @@ Integracion: Garmin Connect + Claude AI
 Autor: Sistema de Analisis Deportivo
 """
 
-import os
-import sys
+import argparse
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Any
+import os
+import sys
 from dataclasses import dataclass, asdict
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import List, Dict, Optional, Any
 
-# Configurar encoding UTF-8 para stdout/stderr en Windows
-if sys.platform == 'win32':
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+from dotenv import load_dotenv
 
 from src.garmin_client import GarminClient
 from src.llm_analizer import LLMAnalyzer
@@ -145,17 +142,17 @@ class TrainingPeaksManager:
         plan_file = Path(self.plan_path)
 
         if not plan_file.exists():
-            self.logger.warning(f"Archivo de plan no encontrado: {self.plan_path}")
+            self.logger.warning("Archivo de plan no encontrado: %s", self.plan_path)
             return None
 
         try:
-            self.logger.info(f"Cargando plan desde {self.plan_path}...")
+            self.logger.info("Cargando plan desde %s...", self.plan_path)
             with open(plan_file, 'r', encoding='utf-8') as f:
                 plan = f.read()
             self.logger.info(" Plan de entrenamiento cargado")
             return plan
-        except Exception as e:
-            self.logger.error(f" Error cargando plan: {e}")
+        except IOError as e:
+            self.logger.error(" Error cargando plan: %s", e)
             return None
 
 
@@ -200,14 +197,9 @@ class TrainingAnalyzer:
 
     def _setup_logging(self) -> logging.Logger:
         """Configura el sistema de logging."""
-        import sys
-
         # Configurar handlers con UTF-8
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
-        # Asegurar que el console handler usa UTF-8
-        if hasattr(console_handler, 'stream') and hasattr(console_handler.stream, 'reconfigure'):
-            console_handler.stream.reconfigure(encoding='utf-8')
 
         file_handler = logging.FileHandler(
             'training_analyzer.log',
@@ -262,7 +254,7 @@ class TrainingAnalyzer:
 
         # Convertir a ActivityData
         activities = [ActivityData.from_garmin_data(act) for act in raw_activities]
-        self.logger.info(f"{len(activities)} actividades obtenidas")
+        self.logger.info("%d actividades obtenidas", len(activities))
 
         # 4. Obtener detalles completos de cada actividad
         activities_details = []
@@ -276,15 +268,12 @@ class TrainingAnalyzer:
 
         # 6. Obtener composicion corporal
         body_composition = self.garmin_client.get_body_composition(start_date, end_date)
-        self.logger.info(f"{len(body_composition)} mediciones de composicion corporal obtenidas")
+        self.logger.info("%d mediciones de composicion corporal obtenidas", len(body_composition))
 
-        # 7. Obtener métricas avanzadas (Sleep, Readiness, Training Status)
-        wellness_data = self._collect_wellness_metrics(start_date, end_date)
-
-        # 8. Cargar plan de TrainingPeaks (si existe)
+        # 7. Cargar plan de TrainingPeaks (si existe)
         training_plan = self.tp_manager.load_training_plan()
 
-        # 9. Analizar con LLM
+        # 8. Analizar con LLM
         analysis = self.llm_analyzer.analyze_training(
             activities,
             activities_details,
@@ -298,10 +287,10 @@ class TrainingAnalyzer:
             self.logger.error("No se pudo generar el analisis")
             return False
 
-        # 10. Guardar resultados
-        self._save_results(activities, analysis, user_profile, body_composition, wellness_data)
+        # 9. Guardar resultados
+        self._save_results(activities, analysis, user_profile, body_composition)
 
-        # 11. Mostrar resultados
+        # 10. Mostrar resultados
         self._display_results(analysis)
 
         self.logger.info("Analisis completado exitosamente")
@@ -333,10 +322,9 @@ class TrainingAnalyzer:
             timestamp
         )
         if charts:
-            # Usar "[OK]" en lugar de "✓" para compatibilidad con Windows console
-            self.logger.info(f"[OK] {len(charts)} grafico(s) generado(s):")
+            self.logger.info("✓ %d gráfico(s) generado(s):", len(charts))
             for chart_type, chart_path in charts.items():
-                self.logger.info(f"    {chart_type}: {chart_path}")
+                self.logger.info("    %s: %s", chart_type, chart_path)
 
         # ========================================
         # 1. GUARDAR EN FORMATO TEXTO (.txt)
@@ -369,7 +357,8 @@ class TrainingAnalyzer:
             f.write(f"** Fecha del análisis:** {current_date}  \n")
             f.write(f"** Periodo analizado:** Últimos {self.config.analysis_days} días  \n")
             f.write(f"** Actividades analizadas:** {len(activities)}  \n")
-            f.write(f"** Modelo usado:** {self.config.llm_provider.upper()} - {self._get_model_name()}  \n\n")
+            model_info = f"{self.config.llm_provider.upper()} - {self._get_model_name()}"
+            f.write(f"** Modelo usado:** {model_info}  \n\n")
             f.write(f"---\n\n")
 
             # Resumen de actividades
@@ -429,16 +418,16 @@ class TrainingAnalyzer:
                 timestamp=timestamp
             )
         except Exception as e:
-            self.logger.error(f"Error generando reporte HTML: {e}")
+            self.logger.error("Error generando reporte HTML: %s", e)
             html_path = None
 
         # Log de archivos generados
-        self.logger.info(f" Resultados guardados:")
-        self.logger.info(f"    Texto: {txt_path}")
-        self.logger.info(f"    Markdown: {md_path}")
-        self.logger.info(f"    JSON: {json_path}")
+        self.logger.info(" Resultados guardados:")
+        self.logger.info("    Texto: %s", txt_path)
+        self.logger.info("    Markdown: %s", md_path)
+        self.logger.info("    JSON: %s", json_path)
         if html_path:
-            self.logger.info(f"    HTML: {html_path}")
+            self.logger.info("    HTML: %s", html_path)
 
     def _collect_wellness_metrics(self, start_date: datetime, end_date: datetime) -> Dict[str, Any]:
         """
@@ -527,8 +516,6 @@ class TrainingAnalyzer:
 # ========================================
 def parse_arguments():
     """Parsea argumentos de línea de comandos."""
-    import argparse
-
     parser = argparse.ArgumentParser(
         description='Sistema de Análisis de Entrenamiento Deportivo con Garmin Connect',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -636,9 +623,6 @@ def merge_config_with_args(args):
     Combina argumentos CLI con variables de entorno.
     Los argumentos CLI tienen prioridad.
     """
-    from dotenv import load_dotenv
-    import os
-
     # Cargar variables de entorno
     load_dotenv()
 

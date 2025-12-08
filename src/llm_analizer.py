@@ -83,7 +83,7 @@ class LLMAnalyzer:
 
         if not is_valid:
             error_msg = "Configuración de prompts inválida:\n" + "\n".join(f"  - {e}" for e in errors)
-            self.logger.error(f"❌ {error_msg}")
+            self.logger.error("❌ %s", error_msg)
             raise RuntimeError(error_msg)
 
         self.logger.debug("✅ Prompts validados correctamente")
@@ -105,18 +105,15 @@ class LLMAnalyzer:
         llm_config = Config.get_llm_config()
         provider = llm_config['provider']
 
-        self.logger.info(f"Inicializando LLM: {provider} ({llm_config['model']})")
+        self.logger.info("Inicializando LLM: %s (%s)", provider, llm_config['model'])
 
         if provider == 'anthropic':
-            # Preparar kwargs para Anthropic
-            anthropic_kwargs = {
-                'model': llm_config['model'],
-                'anthropic_api_key': llm_config['api_key'],
-                'max_tokens': Config.MAX_TOKENS,
-                'temperature': Config.TEMPERATURE
-            }
-
-            return ChatAnthropic(**anthropic_kwargs)
+            return ChatAnthropic(
+                model=llm_config['model'],
+                anthropic_api_key=llm_config['api_key'],
+                max_tokens=Config.MAX_TOKENS,
+                temperature=Config.TEMPERATURE
+            )
 
         elif provider == 'openai':
             return ChatOpenAI(
@@ -146,6 +143,8 @@ class LLMAnalyzer:
         """
         # Siempre incluir el system prompt
         system_prompt = PromptManager.get_system_prompt()
+
+        # Template simple que concatena system prompt + datos
         template = system_prompt + "\n\n{data}"
 
         return ChatPromptTemplate.from_template(template)
@@ -172,7 +171,6 @@ class LLMAnalyzer:
             user_profile: Perfil del usuario
             body_composition: Datos de peso y % grasa
             training_plan: Plan de entrenamiento estructurado (opcional)
-            wellness_data: Datos de sueño, predisposición y estado del entrenamiento (opcional)
 
         Returns:
             str: Analisis generado por el LLM
@@ -183,7 +181,7 @@ class LLMAnalyzer:
             return "No se encontraron actividades en el periodo seleccionado."
 
         try:
-            self.logger.info(f"Enviando datos a {Config.LLM_PROVIDER.upper()} para analisis...")
+            self.logger.info("Enviando datos a %s para analisis...", Config.LLM_PROVIDER.upper())
 
             # Formatear todos los datos
             data_text = self._format_all_data(
@@ -202,7 +200,7 @@ class LLMAnalyzer:
             return analysis
 
         except Exception as e:
-            self.logger.error(f"Error al analizar: {e}")
+            self.logger.error("Error al analizar: %s", e)
             self.logger.error(traceback.format_exc())
             return None
 
@@ -342,93 +340,6 @@ class LLMAnalyzer:
         # Plan de entrenamiento
         if training_plan:
             text += f"\nPLAN DE ENTRENAMIENTO:\n{training_plan}\n"
-
-        # Datos de bienestar (Sueño, Predisposición, Estado del Entrenamiento)
-        if wellness_data:
-            text += "\n" + "="*60 + "\n"
-            text += "METRICAS DE BIENESTAR\n"
-            text += "="*60 + "\n"
-
-            # Sueño
-            if wellness_data.get('sleep'):
-                text += "\nSUENO:\n"
-                sleep_list = wellness_data['sleep']
-                if sleep_list:
-                    for sleep_entry in sleep_list[-7:]:  # Últimos 7 días
-                        text += f"\n  Fecha: {sleep_entry.get('date', 'N/A')}\n"
-                        sleep_data = sleep_entry.get('data', {})
-
-                        # Duración del sueño
-                        if 'sleep' in sleep_data and isinstance(sleep_data['sleep'], list) and len(sleep_data['sleep']) > 0:
-                            sleep_period = sleep_data['sleep'][0]
-                            duration = sleep_period.get('sleepTimeInSeconds', 0)
-                            if duration:
-                                hours = duration / 3600
-                                text += f"    Duracion: {hours:.1f} horas\n"
-
-                            quality = sleep_period.get('sleepQualityTypePK')
-                            if quality:
-                                text += f"    Calidad: {quality}\n"
-
-                text += "\n"
-
-            # Predisposición para entrenar
-            if wellness_data.get('readiness'):
-                text += "\nPREDISPOSICION PARA ENTRENAR (Training Readiness):\n"
-                readiness_list = wellness_data['readiness']
-                if readiness_list:
-                    for readiness_entry in readiness_list[-7:]:  # Últimos 7 días
-                        text += f"\n  Fecha: {readiness_entry.get('date', 'N/A')}\n"
-                        readiness_data = readiness_entry.get('data')
-
-                        # Manejar si readiness_data es una lista
-                        if isinstance(readiness_data, list) and len(readiness_data) > 0:
-                            readiness_data = readiness_data[0]
-                        elif not isinstance(readiness_data, dict):
-                            readiness_data = {}
-
-                        score = readiness_data.get('score')
-                        if score is not None:
-                            text += f"    Puntuacion: {score}\n"
-
-                        level = readiness_data.get('level')
-                        if level:
-                            text += f"    Nivel: {level}\n"
-
-                        feedback_short = readiness_data.get('feedbackShort')
-                        if feedback_short:
-                            text += f"    Retroalimentacion: {feedback_short}\n"
-
-                text += "\n"
-
-            # Estado del entrenamiento
-            if wellness_data.get('training_status'):
-                text += "\nESTADO DEL ENTRENAMIENTO:\n"
-                status_list = wellness_data['training_status']
-                if status_list:
-                    for status_entry in status_list[-7:]:  # Últimos 7 días
-                        text += f"\n  Fecha: {status_entry.get('date', 'N/A')}\n"
-                        status_data = status_entry.get('data')
-
-                        # Manejar si status_data es una lista
-                        if isinstance(status_data, list) and len(status_data) > 0:
-                            status_data = status_data[0]
-                        elif not isinstance(status_data, dict):
-                            status_data = {}
-
-                        status = status_data.get('trainingStatus')
-                        if status:
-                            text += f"    Estado: {status}\n"
-
-                        load = status_data.get('trainingLoad')
-                        if load is not None:
-                            text += f"    Carga de entrenamiento: {load}\n"
-
-                        focus = status_data.get('trainingFocus')
-                        if focus:
-                            text += f"    Enfoque: {focus}\n"
-
-                text += "\n"
 
         return text
 
