@@ -1,9 +1,12 @@
 """
 Tests para el gestor de prompts (src/prompt_manager.py).
 """
+# pylint: disable=protected-access,unused-import
 
-import pytest
-from pathlib import Path
+from pathlib import Path  # noqa: F401
+
+import pytest  # noqa: F401
+
 from src.prompt_manager import PromptManager
 
 

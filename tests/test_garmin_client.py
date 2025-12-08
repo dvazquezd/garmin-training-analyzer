@@ -1,10 +1,13 @@
 """
 Tests para el cliente de Garmin (src/garmin_client.py).
 """
+# pylint: disable=unused-argument
+
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 import pytest
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
+
 from src.garmin_client import GarminClient
 
 
@@ -92,7 +95,8 @@ class TestGarminClient:
         assert result['unit_system'] == "metric"
 
     @patch('src.garmin_client.Garmin')
-    def test_get_body_composition_dict_format(self, mock_garmin_class, garmin_client, sample_body_composition):
+    def test_get_body_composition_dict_format(
+            self, mock_garmin_class, garmin_client, sample_body_composition):
         """Test que get_body_composition maneja formato dict correctamente."""
         mock_client = MagicMock()
         # Simular respuesta en formato dict con lista
@@ -110,7 +114,8 @@ class TestGarminClient:
         assert result[0]['weight'] == 75000
 
     @patch('src.garmin_client.Garmin')
-    def test_get_body_composition_list_format(self, mock_garmin_class, garmin_client, sample_body_composition):
+    def test_get_body_composition_list_format(
+            self, mock_garmin_class, garmin_client, sample_body_composition):
         """Test que get_body_composition maneja formato list correctamente."""
         mock_client = MagicMock()
         # Simular respuesta directamente como lista

@@ -4,13 +4,18 @@ Integracion: Garmin Connect + Claude AI
 Autor: Sistema de Analisis Deportivo
 """
 
-import os
+import argparse
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Any
+import os
+import sys
 from dataclasses import dataclass, asdict
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import List, Dict, Optional, Any
+
+from dotenv import load_dotenv
+
 from src.garmin_client import GarminClient
 from src.llm_analizer import LLMAnalyzer
 from src.config import Config
@@ -37,7 +42,7 @@ class ActivityData:
     calories: Optional[int]
     avg_speed: Optional[float]
     elevation_gain: Optional[float]
-    
+
     @classmethod
     def from_garmin_data(cls, garmin_activity: Dict) -> 'ActivityData':
         """Crea una instancia desde datos de Garmin."""
@@ -54,7 +59,7 @@ class ActivityData:
             avg_speed=garmin_activity.get('averageSpeed'),
             elevation_gain=garmin_activity.get('elevationGain')
         )
-    
+
     def to_readable_text(self) -> str:
         """Convierte la actividad a texto legible."""
         text = f" {self.name}\n"
@@ -62,7 +67,7 @@ class ActivityData:
         text += f"   Fecha: {self.date}\n"
         text += f"   Distancia: {self.distance_km:.2f} km\n"
         text += f"   Duracion: {self.duration_minutes:.0f} min\n"
-        
+
         if self.avg_heart_rate:
             text += f"   FC Promedio: {self.avg_heart_rate} bpm\n"
         if self.max_heart_rate:
@@ -71,7 +76,7 @@ class ActivityData:
             text += f"   Calorias: {self.calories}\n"
         if self.elevation_gain:
             text += f"   Desnivel: {self.elevation_gain:.0f} m\n"
-        
+
         return text
 
 
@@ -85,23 +90,23 @@ class AnalysisConfig:
     analysis_days: int = 7
     training_plan_path: Optional[str] = None
     output_dir: str = "analysis_reports"
-    
+
     @classmethod
     def from_env(cls) -> 'AnalysisConfig':
-        """Carga configuracion desde variables de entorno."""        
+        """Carga configuracion desde variables de entorno."""
         # Obtener configuracion del LLM
         llm_config = Config.get_llm_config()
-        
+
         return cls(
             garmin_email=os.getenv('GARMIN_EMAIL', ''),
             garmin_password=os.getenv('GARMIN_PASSWORD', ''),
-            llm_provider=Config.LLM_PROVIDER,             
-            llm_model=llm_config.get('model', 'Unknown'),  
+            llm_provider=Config.LLM_PROVIDER,
+            llm_model=llm_config.get('model', 'Unknown'),
             analysis_days=int(os.getenv('ANALYSIS_DAYS', '7')),
             training_plan_path=os.getenv('TRAINING_PLAN_PATH'),
             output_dir=os.getenv('OUTPUT_DIR', 'analysis_reports')
         )
-    
+
     def validate(self) -> bool:
         """Valida que la configuracion este completa."""
         return bool(self.garmin_email and self.garmin_password)
@@ -112,42 +117,42 @@ class AnalysisConfig:
 
 class TrainingPeaksManager:
     """Gestor para manejar planes de TrainingPeaks."""
-    
+
     def __init__(self, plan_path: Optional[str] = None):
         """
         Inicializa el gestor de TrainingPeaks.
-        
+
         Args:
             plan_path: Ruta al archivo con el plan de entrenamiento
         """
         self.plan_path = plan_path
         self.logger = logging.getLogger(self.__class__.__name__)
-    
+
     def load_training_plan(self) -> Optional[str]:
         """
         Carga el plan de entrenamiento desde archivo.
-        
+
         Returns:
             Contenido del plan o None si no esta disponible
         """
         if not self.plan_path:
             self.logger.info("No se especifico ruta de plan de entrenamiento")
             return None
-        
+
         plan_file = Path(self.plan_path)
-        
+
         if not plan_file.exists():
-            self.logger.warning(f"Archivo de plan no encontrado: {self.plan_path}")
+            self.logger.warning("Archivo de plan no encontrado: %s", self.plan_path)
             return None
-        
+
         try:
-            self.logger.info(f"Cargando plan desde {self.plan_path}...")
+            self.logger.info("Cargando plan desde %s...", self.plan_path)
             with open(plan_file, 'r', encoding='utf-8') as f:
                 plan = f.read()
             self.logger.info(" Plan de entrenamiento cargado")
             return plan
-        except Exception as e:
-            self.logger.error(f" Error cargando plan: {e}")
+        except IOError as e:
+            self.logger.error(" Error cargando plan: %s", e)
             return None
 
 
@@ -157,11 +162,11 @@ class TrainingPeaksManager:
 
 class TrainingAnalyzer:
     """Orquestador principal del sistema de analisis."""
-    
+
     def __init__(self, config: AnalysisConfig):
         """
         Inicializa el analizador de entrenamiento.
-        
+
         Args:
             config: Configuracion del analisis
         """
@@ -189,87 +194,85 @@ class TrainingAnalyzer:
         # Inicializar visualizador y reporteador HTML
         self.visualizer = TrainingVisualizer(config.output_dir)
         self.html_reporter = HTMLReporter(config.output_dir)
-    
+
     def _setup_logging(self) -> logging.Logger:
         """Configura el sistema de logging."""
-        import sys
-        
         # Configurar handlers con UTF-8
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
-        
+
         file_handler = logging.FileHandler(
             'training_analyzer.log',
             encoding='utf-8'  #  Esto es clave
         )
         file_handler.setLevel(logging.INFO)
-        
+
         # Formato
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         console_handler.setFormatter(formatter)
         file_handler.setFormatter(formatter)
-        
+
         # Configurar logging
         logging.basicConfig(
             level=logging.INFO,
             handlers=[console_handler, file_handler]
         )
-        
+
         return logging.getLogger(self.__class__.__name__)
-    
+
     def run_analysis(self) -> bool:
         """
         Ejecuta el analisis completo.
-        
+
         Returns:
             bool: True si el analisis fue exitoso
         """
         self.logger.info("=" * 60)
         self.logger.info("INICIANDO ANALISIS DE ENTRENAMIENTO")
         self.logger.info("=" * 60)
-        
+
         # Validar configuracion
         if not self.config.validate():
             self.logger.error("Configuracion invalida. Verifica credenciales.")
             return False
-        
+
         # 1. Conectar con Garmin
         if not self.garmin_client.connect():
             return False
-        
+
         # 2. Calcular rango de fechas
         end_date = datetime.now()
         start_date = end_date - timedelta(days=self.config.analysis_days)
-        
+
         # 3. Obtener actividades basicas
         raw_activities = self.garmin_client.get_activities(start_date, end_date)
         if not raw_activities:
             self.logger.warning("No se encontraron actividades")
             return False
-        
+
         # Convertir a ActivityData
         activities = [ActivityData.from_garmin_data(act) for act in raw_activities]
-        self.logger.info(f"{len(activities)} actividades obtenidas")
-        
+        self.logger.info("%d actividades obtenidas", len(activities))
+
         # 4. Obtener detalles completos de cada actividad
         activities_details = []
         self.logger.info("Obteniendo detalles de actividades...")
         for activity in activities:
             details = self.garmin_client.get_activity_details(activity.activity_id)
             activities_details.append(details if details else {})
-        
+
         # 5. Obtener perfil de usuario
         user_profile = self.garmin_client.get_user_profile()
-        
+
         # 6. Obtener composicion corporal
         body_composition = self.garmin_client.get_body_composition(start_date, end_date)
-        self.logger.info(f"{len(body_composition)} mediciones de composicion corporal obtenidas")
-        
+        self.logger.info("%d mediciones de composicion corporal obtenidas", len(body_composition))
+
         # 7. Cargar plan de TrainingPeaks (si existe)
         training_plan = self.tp_manager.load_training_plan()
-        
+
         # 8. Analizar con LLM
         analysis = self.llm_analyzer.analyze_training(
             activities,
@@ -278,17 +281,17 @@ class TrainingAnalyzer:
             body_composition,
             training_plan
         )
-        
+
         if not analysis:
             self.logger.error("No se pudo generar el analisis")
             return False
-        
+
         # 9. Guardar resultados
         self._save_results(activities, analysis, user_profile, body_composition)
-        
+
         # 10. Mostrar resultados
         self._display_results(analysis)
-        
+
         self.logger.info("Analisis completado exitosamente")
         return True
 
@@ -315,10 +318,10 @@ class TrainingAnalyzer:
             timestamp
         )
         if charts:
-            self.logger.info(f"✓ {len(charts)} gráfico(s) generado(s):")
+            self.logger.info("✓ %d gráfico(s) generado(s):", len(charts))
             for chart_type, chart_path in charts.items():
-                self.logger.info(f"    {chart_type}: {chart_path}")
-        
+                self.logger.info("    %s: %s", chart_type, chart_path)
+
         # ========================================
         # 1. GUARDAR EN FORMATO TEXTO (.txt)
         # ========================================
@@ -335,7 +338,7 @@ class TrainingAnalyzer:
             f.write("ANÁLISIS Y RECOMENDACIONES\n")
             f.write("=" * 60 + "\n\n")
             f.write(analysis)
-        
+
         # ========================================
         # 2. GUARDAR EN FORMATO MARKDOWN (.md)
         # ========================================
@@ -343,21 +346,22 @@ class TrainingAnalyzer:
         with open(md_path, 'w', encoding='utf-8') as f:
             # Header del documento
             f.write(f"#  Reporte de Análisis de Entrenamiento\n\n")
-            
+
             # Metadata
             f.write(f"---\n\n")
             f.write(f"** Atleta:** {athlete_name}  \n")
             f.write(f"** Fecha del análisis:** {current_date}  \n")
             f.write(f"** Periodo analizado:** Últimos {self.config.analysis_days} días  \n")
             f.write(f"** Actividades analizadas:** {len(activities)}  \n")
-            f.write(f"** Modelo usado:** {self.config.llm_provider.upper()} - {self._get_model_name()}  \n\n")
+            model_info = f"{self.config.llm_provider.upper()} - {self._get_model_name()}"
+            f.write(f"** Modelo usado:** {model_info}  \n\n")
             f.write(f"---\n\n")
-            
+
             # Resumen de actividades
             f.write(f"##  Resumen de Actividades\n\n")
             f.write(f"| # | Actividad | Tipo | Fecha | Distancia | Duracion | FC Avg |\n")
             f.write(f"|---|-----------|------|-------|-----------|----------|--------|\n")
-            
+
             for idx, act in enumerate(activities, 1):
                 f.write(
                     f"| {idx} | {act.name[:30]} | {act.activity_type} | "
@@ -365,17 +369,17 @@ class TrainingAnalyzer:
                     f"{act.duration_minutes:.0f} min | "
                     f"{act.avg_heart_rate or '-'} bpm |\n"
                 )
-            
+
             f.write(f"\n---\n\n")
-            
+
             # Analisis completo
             f.write(f"##  Analisis Detallado\n\n")
             f.write(analysis)
-            
+
             # Footer
             f.write(f"\n\n---\n\n")
             f.write(f"*Generado automaticamente por el Sistema de Analisis de Entrenamiento*\n")
-        
+
         # ========================================
         # 3. GUARDAR EN FORMATO JSON (.json)
         # ========================================
@@ -391,7 +395,7 @@ class TrainingAnalyzer:
                 "activities": [asdict(act) for act in activities],
                 "analysis": analysis
             }, f, indent=2, ensure_ascii=False)
-        
+
         # ========================================
         # 4. GUARDAR EN FORMATO HTML (.html)
         # ========================================
@@ -410,22 +414,22 @@ class TrainingAnalyzer:
                 timestamp=timestamp
             )
         except Exception as e:
-            self.logger.error(f"Error generando reporte HTML: {e}")
+            self.logger.error("Error generando reporte HTML: %s", e)
             html_path = None
 
         # Log de archivos generados
-        self.logger.info(f" Resultados guardados:")
-        self.logger.info(f"    Texto: {txt_path}")
-        self.logger.info(f"    Markdown: {md_path}")
-        self.logger.info(f"    JSON: {json_path}")
+        self.logger.info(" Resultados guardados:")
+        self.logger.info("    Texto: %s", txt_path)
+        self.logger.info("    Markdown: %s", md_path)
+        self.logger.info("    JSON: %s", json_path)
         if html_path:
-            self.logger.info(f"    HTML: {html_path}")
+            self.logger.info("    HTML: %s", html_path)
 
     def _get_model_name(self) -> str:
         """Obtiene el nombre del modelo usado."""
         llm_config = Config.get_llm_config()
         return llm_config.get('model', 'Unknown')
-    
+
     def _display_results(self, analysis: str) -> None:
         """Muestra los resultados en pantalla."""
         print("\n" + "=" * 60)
@@ -440,8 +444,6 @@ class TrainingAnalyzer:
 # ========================================
 def parse_arguments():
     """Parsea argumentos de línea de comandos."""
-    import argparse
-
     parser = argparse.ArgumentParser(
         description='Sistema de Análisis de Entrenamiento Deportivo con Garmin Connect',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -549,9 +551,6 @@ def merge_config_with_args(args):
     Combina argumentos CLI con variables de entorno.
     Los argumentos CLI tienen prioridad.
     """
-    from dotenv import load_dotenv
-    import os
-
     # Cargar variables de entorno
     load_dotenv()
 
