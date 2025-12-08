@@ -227,14 +227,6 @@ class GarminClient:
                 "unit_system": self.client.get_unit_system()
             }
 
-            # Intentar obtener settings adicionales
-            try:
-                settings = self.client.get_user_settings()
-                if settings:
-                    profile["settings"] = settings
-            except:
-                pass
-
             self.logger.info("Perfil obtenido: %s", profile['name'])
 
             # Guardar en caché

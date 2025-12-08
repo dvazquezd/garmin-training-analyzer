@@ -245,7 +245,6 @@ def verify_prompts_setup() -> None:
             print(f"   {system_prompt[:200]}...")
         else:
             print("   (No disponible)")
-
     else:
         print("\n❌ Errores encontrados:")
         for error in errors:
