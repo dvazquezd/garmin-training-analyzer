@@ -22,13 +22,13 @@ logging.basicConfig(
 
 def main():
     """Test Garmin connection."""
-    
+
     load_dotenv()
-    
+
     print("=" * 70)
     print("GARMIN CONNECT TEST")
     print("=" * 70)
-    
+
     # Check credentials
     print("\n1. Checking credentials...")
     if not Config.GARMIN_EMAIL or not Config.GARMIN_PASSWORD:
@@ -36,7 +36,7 @@ def main():
         print("   Please configure GARMIN_EMAIL and GARMIN_PASSWORD in .env")
         return
     print(f"   ✅ Email: {Config.GARMIN_EMAIL}")
-    
+
     # Connect
     print("\n2. Connecting to Garmin...")
     client = GarminClient(Config.GARMIN_EMAIL, Config.GARMIN_PASSWORD)
@@ -45,7 +45,7 @@ def main():
         print("   Check your credentials and internet connection")
         return
     print("   ✅ Connected successfully")
-    
+
     # Get profile
     print("\n3. Fetching user profile...")
     profile = client.get_user_profile()
@@ -54,12 +54,12 @@ def main():
         print(f"   ✅ Unit system: {profile.get('unit_system', 'Unknown')}")
     else:
         print("   ⚠️  Could not fetch profile")
-    
+
     # Get recent activities
     print("\n4. Fetching recent activities (last 7 days)...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=7)
-    
+
     activities = client.get_activities(start_date, end_date)
     if activities:
         print(f"   ✅ Found {len(activities)} activities")
@@ -75,7 +75,7 @@ def main():
                 print(f"      Duration: {latest['duration']/60:.0f} min")
     else:
         print("   ⚠️  No activities found in last 7 days")
-    
+
     # Get body composition
     print("\n5. Checking body composition data...")
     body_comp = client.get_body_composition(start_date, end_date)
@@ -91,7 +91,7 @@ def main():
     else:
         print("   ⚠️  No body composition data found")
         print("   This is normal if you don't have a connected scale")
-    
+
     # Get devices
     print("\n6. Fetching connected devices...")
     devices = client.get_devices()
@@ -101,7 +101,7 @@ def main():
             print(f"      - {device.get('productDisplayName', 'Unknown device')}")
     else:
         print("   ⚠️  No devices found")
-    
+
     print("\n" + "=" * 70)
     print("✅ GARMIN CONNECTION TEST COMPLETED")
     print("=" * 70)

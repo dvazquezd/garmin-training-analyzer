@@ -4,7 +4,9 @@ Versión refactorizada que usa PromptManager para gestionar prompts externos.
 """
 
 import logging
+import traceback
 from typing import List, Dict, Any, Optional
+
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -17,47 +19,47 @@ from src.prompt_manager import PromptManager
 
 class LLMAnalyzer:
     """Analizador de entrenamiento usando LangChain con soporte multi-LLM."""
-    
+
     # ========================================
     # INICIALIZACIÓN
     # ========================================
-    
+
     def __init__(self):
         """Inicializa el analizador con el LLM configurado."""
         self.logger = logging.getLogger(self.__class__.__name__)
-        
+
         # Validar que los prompts existan
         self._validate_prompts()
-        
+
         # Inicializar componentes
         self.llm = self._initialize_llm()
         self.prompt_template = self._create_prompt_template()
         self.chain = self.prompt_template | self.llm | StrOutputParser()
-    
+
     # ========================================
     # MÉTODOS ESTÁTICOS: ACCESO A PROMPTS
     # ========================================
-    
+
     @staticmethod
     def get_system_prompt() -> str:
         """
         Obtiene el system prompt desde PromptManager.
-        
+
         Returns:
             str: System prompt con las instrucciones base del sistema
         """
         return PromptManager.get_system_prompt()
-    
+
     @staticmethod
     def get_user_prompt_template() -> str:
         """
         Obtiene el template del user prompt desde PromptManager.
-        
+
         Returns:
             str: Template con placeholders para datos del usuario
         """
         return PromptManager.get_user_prompt_template()
-    
+
     @staticmethod
     def reload_prompts() -> None:
         """
@@ -65,46 +67,46 @@ class LLMAnalyzer:
         Útil después de modificar los archivos de prompts.
         """
         PromptManager.reload_prompts()
-    
+
     # ========================================
     # MÉTODOS PRIVADOS: VALIDACIÓN
     # ========================================
-    
+
     def _validate_prompts(self) -> None:
         """
         Valida que los prompts estén correctamente configurados.
-        
+
         Raises:
             RuntimeError: Si los prompts no son válidos
         """
         is_valid, errors = PromptManager.validate_prompts()
-        
+
         if not is_valid:
             error_msg = "Configuración de prompts inválida:\n" + "\n".join(f"  - {e}" for e in errors)
             self.logger.error(f"❌ {error_msg}")
             raise RuntimeError(error_msg)
-        
+
         self.logger.debug("✅ Prompts validados correctamente")
-    
+
     # ========================================
     # MÉTODOS PRIVADOS: INICIALIZACIÓN LLM
     # ========================================
-    
+
     def _initialize_llm(self):
         """
         Inicializa el LLM según la configuración.
-        
+
         Returns:
             Instancia del LLM configurado
-            
+
         Raises:
             ValueError: Si el proveedor no está soportado
         """
         llm_config = Config.get_llm_config()
         provider = llm_config['provider']
-        
+
         self.logger.info(f"Inicializando LLM: {provider} ({llm_config['model']})")
-        
+
         if provider == 'anthropic':
             # Preparar kwargs para Anthropic
             anthropic_kwargs = {
@@ -113,9 +115,9 @@ class LLMAnalyzer:
                 'max_tokens': Config.MAX_TOKENS,
                 'temperature': Config.TEMPERATURE
             }
-            
+
             return ChatAnthropic(**anthropic_kwargs)
-        
+
         elif provider == 'openai':
             return ChatOpenAI(
                 model=llm_config['model'],
@@ -123,7 +125,7 @@ class LLMAnalyzer:
                 max_tokens=Config.MAX_TOKENS,
                 temperature=Config.TEMPERATURE
             )
-        
+
         elif provider == 'google':
             return ChatGoogleGenerativeAI(
                 model=llm_config['model'],
@@ -131,27 +133,27 @@ class LLMAnalyzer:
                 max_tokens=Config.MAX_TOKENS,
                 temperature=Config.TEMPERATURE
             )
-        
+
         else:
             raise ValueError(f"Proveedor LLM no soportado: {provider}")
-    
+
     def _create_prompt_template(self) -> ChatPromptTemplate:
         """
         Crea el template del prompt usando PromptManager.
-        
+
         Returns:
             ChatPromptTemplate: Template configurado para LangChain
         """
         # Siempre incluir el system prompt
         system_prompt = PromptManager.get_system_prompt()
         template = system_prompt + "\n\n{data}"
-        
+
         return ChatPromptTemplate.from_template(template)
-    
+
     # ========================================
     # MÉTODOS PÚBLICOS: ANÁLISIS
     # ========================================
-    
+
     def analyze_training(
         self,
         activities: List[Any],
@@ -163,7 +165,7 @@ class LLMAnalyzer:
     ) -> Optional[str]:
         """
         Analiza el entrenamiento usando LangChain.
-        
+
         Args:
             activities: Lista de actividades basicas
             activities_details: Lista de detalles completos de cada actividad
@@ -171,7 +173,7 @@ class LLMAnalyzer:
             body_composition: Datos de peso y % grasa
             training_plan: Plan de entrenamiento estructurado (opcional)
             wellness_data: Datos de sueño, predisposición y estado del entrenamiento (opcional)
-            
+
         Returns:
             str: Analisis generado por el LLM
             None: Si ocurre un error o no hay actividades
@@ -179,36 +181,35 @@ class LLMAnalyzer:
         if not activities:
             self.logger.warning("No hay actividades para analizar")
             return "No se encontraron actividades en el periodo seleccionado."
-        
+
         try:
             self.logger.info(f"Enviando datos a {Config.LLM_PROVIDER.upper()} para analisis...")
-            
+
             # Formatear todos los datos
             data_text = self._format_all_data(
-                activities, 
+                activities,
                 activities_details,
-                user_profile, 
+                user_profile,
                 body_composition,
                 training_plan,
                 wellness_data=wellness_data
             )
-            
+
             # Invocar la cadena con datos completos
             analysis = self.chain.invoke({"data": data_text})
-            
+
             self.logger.info("Analisis completado")
             return analysis
-            
+
         except Exception as e:
             self.logger.error(f"Error al analizar: {e}")
-            import traceback
             self.logger.error(traceback.format_exc())
             return None
-    
+
     # ========================================
     # METODOS PRIVADOS: FORMATEO
     # ========================================
-    
+
     def _format_all_data(
         self,
         activities: List[Any],
@@ -220,19 +221,19 @@ class LLMAnalyzer:
     ) -> str:
         """
         Formatea todos los datos para el prompt.
-        
+
         Args:
             activities: Lista de actividades basicas
             activities_details: Detalles completos de actividades
             user_profile: Perfil del usuario
             body_composition: Datos de composicion corporal
             training_plan: Plan de entrenamiento
-            
+
         Returns:
             str: Texto completo formateado
         """
         text = f"ATLETA: {user_profile.get('name', 'Usuario')}\n\n"
-        
+
         # Actividades con detalles
         text += f"ACTIVIDADES ({len(activities)} entrenamientos):\n\n"
         for idx, (activity, details) in enumerate(zip(activities, activities_details), 1):
@@ -242,7 +243,7 @@ class LLMAnalyzer:
             text += f"  Fecha: {activity.date}\n"
             text += f"  Distancia: {activity.distance_km:.2f} km\n"
             text += f"  Duracion: {activity.duration_minutes:.0f} min\n"
-            
+
             if activity.avg_heart_rate:
                 text += f"  FC Promedio: {activity.avg_heart_rate} bpm\n"
             if activity.max_heart_rate:
@@ -253,7 +254,7 @@ class LLMAnalyzer:
                 text += f"  Velocidad media: {activity.avg_speed:.2f} m/s\n"
             if activity.elevation_gain:
                 text += f"  Desnivel: {activity.elevation_gain:.0f} m\n"
-            
+
             # Detalles adicionales si existen
             if details:
                 if 'averagePower' in details:
@@ -262,24 +263,24 @@ class LLMAnalyzer:
                     text += f"  Training Effect: {details['trainingEffect']}\n"
                 if 'lactateThresholdHeartRate' in details:
                     text += f"  FC Umbral: {details['lactateThresholdHeartRate']} bpm\n"
-            
+
             text += "\n"
-        
+
         # Composicion corporal
         if body_composition and len(body_composition) > 0:
             text += "\nCOMPOSICION CORPORAL:\n\n"
-            
+
             for idx, measure in enumerate(body_composition, 1):
                 # Validar que measure es un diccionario
                 if not isinstance(measure, dict):
                     continue
-                
+
                 text += f"Medicion {idx}:\n"
-                
+
                 # Fecha (campo principal de Garmin)
                 date = measure.get('calendarDate', measure.get('date', 'N/A'))
                 text += f"  Fecha: {date}\n"
-                
+
                 # Peso (convertir de gramos a kg si es necesario)
                 weight = measure.get('weight')
                 if weight is not None:
@@ -332,22 +333,22 @@ class LLMAnalyzer:
                 metabolic_age = measure.get('metabolicAge')
                 if metabolic_age is not None:
                     text += f"  Edad metabolica: {metabolic_age} anos\n"
-                
+
                 text += "\n"
         else:
             text += "\nCOMPOSICION CORPORAL:\n"
             text += "  No hay datos disponibles en este periodo\n\n"
-        
+
         # Plan de entrenamiento
         if training_plan:
             text += f"\nPLAN DE ENTRENAMIENTO:\n{training_plan}\n"
-        
+
         # Datos de bienestar (Sueño, Predisposición, Estado del Entrenamiento)
         if wellness_data:
             text += "\n" + "="*60 + "\n"
             text += "METRICAS DE BIENESTAR\n"
             text += "="*60 + "\n"
-            
+
             # Sueño
             if wellness_data.get('sleep'):
                 text += "\nSUENO:\n"
@@ -356,7 +357,7 @@ class LLMAnalyzer:
                     for sleep_entry in sleep_list[-7:]:  # Últimos 7 días
                         text += f"\n  Fecha: {sleep_entry.get('date', 'N/A')}\n"
                         sleep_data = sleep_entry.get('data', {})
-                        
+
                         # Duración del sueño
                         if 'sleep' in sleep_data and isinstance(sleep_data['sleep'], list) and len(sleep_data['sleep']) > 0:
                             sleep_period = sleep_data['sleep'][0]
@@ -364,13 +365,13 @@ class LLMAnalyzer:
                             if duration:
                                 hours = duration / 3600
                                 text += f"    Duracion: {hours:.1f} horas\n"
-                            
+
                             quality = sleep_period.get('sleepQualityTypePK')
                             if quality:
                                 text += f"    Calidad: {quality}\n"
-                
+
                 text += "\n"
-            
+
             # Predisposición para entrenar
             if wellness_data.get('readiness'):
                 text += "\nPREDISPOSICION PARA ENTRENAR (Training Readiness):\n"
@@ -379,27 +380,27 @@ class LLMAnalyzer:
                     for readiness_entry in readiness_list[-7:]:  # Últimos 7 días
                         text += f"\n  Fecha: {readiness_entry.get('date', 'N/A')}\n"
                         readiness_data = readiness_entry.get('data')
-                        
+
                         # Manejar si readiness_data es una lista
                         if isinstance(readiness_data, list) and len(readiness_data) > 0:
                             readiness_data = readiness_data[0]
                         elif not isinstance(readiness_data, dict):
                             readiness_data = {}
-                        
+
                         score = readiness_data.get('score')
                         if score is not None:
                             text += f"    Puntuacion: {score}\n"
-                        
+
                         level = readiness_data.get('level')
                         if level:
                             text += f"    Nivel: {level}\n"
-                        
+
                         feedback_short = readiness_data.get('feedbackShort')
                         if feedback_short:
                             text += f"    Retroalimentacion: {feedback_short}\n"
-                
+
                 text += "\n"
-            
+
             # Estado del entrenamiento
             if wellness_data.get('training_status'):
                 text += "\nESTADO DEL ENTRENAMIENTO:\n"
@@ -408,27 +409,27 @@ class LLMAnalyzer:
                     for status_entry in status_list[-7:]:  # Últimos 7 días
                         text += f"\n  Fecha: {status_entry.get('date', 'N/A')}\n"
                         status_data = status_entry.get('data')
-                        
+
                         # Manejar si status_data es una lista
                         if isinstance(status_data, list) and len(status_data) > 0:
                             status_data = status_data[0]
                         elif not isinstance(status_data, dict):
                             status_data = {}
-                        
+
                         status = status_data.get('trainingStatus')
                         if status:
                             text += f"    Estado: {status}\n"
-                        
+
                         load = status_data.get('trainingLoad')
                         if load is not None:
                             text += f"    Carga de entrenamiento: {load}\n"
-                        
+
                         focus = status_data.get('trainingFocus')
                         if focus:
                             text += f"    Enfoque: {focus}\n"
-                
+
                 text += "\n"
-        
+
         return text
 
 
@@ -444,11 +445,11 @@ def verify_analyzer_setup() -> None:
     print("=" * 60)
     print("VERIFICACIÓN DE CONFIGURACIÓN DEL ANALIZADOR")
     print("=" * 60)
-    
+
     # Verificar prompts
     print("\n1. Verificando prompts...")
     is_valid, errors = PromptManager.validate_prompts()
-    
+
     if is_valid:
         print("   ✅ Prompts válidos")
         info = PromptManager.get_prompts_info()
@@ -459,14 +460,14 @@ def verify_analyzer_setup() -> None:
         for error in errors:
             print(f"      - {error}")
         return
-    
+
     # Verificar configuración LLM
     print("\n2. Verificando configuración LLM...")
     llm_config = Config.get_llm_config()
     print(f"   Proveedor: {llm_config['provider']}")
     print(f"   Modelo: {llm_config['model']}")
     print(f"   API Key configurada: {'✅' if llm_config.get('api_key') else '❌'}")
-    
+
     # Verificar que se puede crear el analizador
     print("\n3. Intentando crear instancia del analizador...")
     try:
@@ -475,7 +476,7 @@ def verify_analyzer_setup() -> None:
         print("   ℹ️  Para probar completamente, ejecuta el script principal")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     print("\n" + "=" * 60)
     print("✅ VERIFICACIÓN COMPLETADA")
     print("=" * 60)
@@ -487,6 +488,6 @@ if __name__ == "__main__":
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     # Ejecutar verificación
     verify_analyzer_setup()

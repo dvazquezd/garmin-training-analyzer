@@ -730,7 +730,6 @@ class HTMLReporter:
 
 if __name__ == "__main__":
     # Demo
-    import logging
     logging.basicConfig(level=logging.INFO)
     reporter = HTMLReporter()
     print(f"HTML Reporter inicializado. Output: {reporter.output_dir}")
