@@ -12,7 +12,7 @@ from jinja2 import Template
 import markdown
 
 
-class HTMLReporter:
+class HTMLReporter:  # pylint: disable=too-few-public-methods
     """Genera reportes HTML con diseño responsive y gráficos embebidos."""
 
     def __init__(self, output_dir: str = "analysis_reports"):
@@ -26,7 +26,7 @@ class HTMLReporter:
         self.output_dir.mkdir(exist_ok=True)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def generate_report(
+    def generate_report(  # pylint: disable=too-many-positional-arguments,too-many-arguments
         self,
         activities: List[Any],
         analysis: str,
@@ -154,7 +154,7 @@ class HTMLReporter:
             'weight_change': (weight_end - weight_start) if (weight_start and weight_end) else None
         }
 
-    def _render_template(
+    def _render_template(  # pylint: disable=too-many-arguments,too-many-positional-arguments,unused-argument
         self,
         activities: List[Any],
         analysis: str,

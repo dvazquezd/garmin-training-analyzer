@@ -29,7 +29,7 @@ from src.html_reporter import HTMLReporter
 # ========================================
 
 @dataclass
-class ActivityData:
+class ActivityData:  # pylint: disable=too-many-instance-attributes
     """Modelo de datos para una actividad deportiva."""
     activity_id: str
     name: str
@@ -115,7 +115,7 @@ class AnalysisConfig:
 # GESTOR DE TRAININGPEAKS
 # ========================================
 
-class TrainingPeaksManager:
+class TrainingPeaksManager:  # pylint: disable=too-few-public-methods
     """Gestor para manejar planes de TrainingPeaks."""
 
     def __init__(self, plan_path: Optional[str] = None):
@@ -160,7 +160,7 @@ class TrainingPeaksManager:
 # ORQUESTADOR PRINCIPAL
 # ========================================
 
-class TrainingAnalyzer:
+class TrainingAnalyzer:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
     """Orquestador principal del sistema de analisis."""
 
     def __init__(self, config: AnalysisConfig):
@@ -270,10 +270,13 @@ class TrainingAnalyzer:
         body_composition = self.garmin_client.get_body_composition(start_date, end_date)
         self.logger.info("%d mediciones de composicion corporal obtenidas", len(body_composition))
 
-        # 7. Cargar plan de TrainingPeaks (si existe)
+        # 7. Obtener métricas avanzadas (Sleep, Readiness, Training Status)
+        wellness_data = self._collect_wellness_metrics(start_date, end_date)
+
+        # 8. Cargar plan de TrainingPeaks (si existe)
         training_plan = self.tp_manager.load_training_plan()
 
-        # 8. Analizar con LLM
+        # 9. Analizar con LLM
         analysis = self.llm_analyzer.analyze_training(
             activities,
             activities_details,
@@ -287,16 +290,16 @@ class TrainingAnalyzer:
             self.logger.error("No se pudo generar el analisis")
             return False
 
-        # 9. Guardar resultados
-        self._save_results(activities, analysis, user_profile, body_composition)
+        # 10. Guardar resultados
+        self._save_results(activities, analysis, user_profile, body_composition, wellness_data)
 
-        # 10. Mostrar resultados
-        self._display_results(analysis)
+        # 11. Mostrar resultados
+        self._display_results()
 
         self.logger.info("Analisis completado exitosamente")
         return True
 
-    def _save_results(
+    def _save_results(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         activities: List[ActivityData],
         analysis: str,
@@ -453,28 +456,31 @@ class TrainingAnalyzer:
             current_date = start_date
             while current_date <= end_date:
                 # Obtener sueño
-                sleep_data = self.garmin_client.get_sleep_data(current_date)
-                if sleep_data:
-                    wellness_data['sleep'].append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'data': sleep_data
-                    })
+                if hasattr(self.garmin_client, 'get_sleep_data'):
+                    sleep_data = self.garmin_client.get_sleep_data(current_date)  # pylint: disable=no-member
+                    if sleep_data:
+                        wellness_data['sleep'].append({
+                            'date': current_date.strftime('%Y-%m-%d'),
+                            'data': sleep_data
+                        })
 
                 # Obtener predisposición para entrenar
-                readiness_data = self.garmin_client.get_training_readiness(current_date)
-                if readiness_data:
-                    wellness_data['readiness'].append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'data': readiness_data
-                    })
+                if hasattr(self.garmin_client, 'get_training_readiness'):
+                    readiness_data = self.garmin_client.get_training_readiness(current_date)  # pylint: disable=no-member
+                    if readiness_data:
+                        wellness_data['readiness'].append({
+                            'date': current_date.strftime('%Y-%m-%d'),
+                            'data': readiness_data
+                        })
 
                 # Obtener estado del entrenamiento
-                training_status = self.garmin_client.get_training_status(current_date)
-                if training_status:
-                    wellness_data['training_status'].append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'data': training_status
-                    })
+                if hasattr(self.garmin_client, 'get_training_status'):
+                    training_status = self.garmin_client.get_training_status(current_date)  # pylint: disable=no-member
+                    if training_status:
+                        wellness_data['training_status'].append({
+                            'date': current_date.strftime('%Y-%m-%d'),
+                            'data': training_status
+                        })
 
                 current_date += timedelta(days=1)
 
@@ -494,7 +500,7 @@ class TrainingAnalyzer:
         llm_config = Config.get_llm_config()
         return llm_config.get('model', 'Unknown')
 
-    def _display_results(self, analysis: str) -> None:
+    def _display_results(self) -> None:
         """Muestra resumen de resultados (análisis completo guardado en archivos)."""
         try:
             print("\n" + "=" * 60)
@@ -618,7 +624,7 @@ Notas:
     return parser.parse_args()
 
 
-def merge_config_with_args(args):
+def merge_config_with_args(args):  # pylint: disable=too-many-branches
     """
     Combina argumentos CLI con variables de entorno.
     Los argumentos CLI tienen prioridad.
@@ -675,7 +681,7 @@ def main():
 
     # Si se solicita limpiar caché, hacerlo antes
     if args.clear_cache:
-        from src.cache_manager import CacheManager
+        from src.cache_manager import CacheManager  # pylint: disable=import-outside-toplevel
         cache = CacheManager()
         cache.clear_all()
         print("✓ Caché limpiado exitosamente")
@@ -691,4 +697,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())
