@@ -5,7 +5,7 @@ Proporciona acceso a actividades, metricas de salud y composicion corporal.
 
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict, Optional, Any, Callable
 from functools import wraps
 from garminconnect import Garmin
@@ -416,8 +416,21 @@ class GarminClient:
             return []
 
         try:
-            gear = self.client.get_gear()
-            return gear if gear else []
+            try:
+                # get_gear requiere userProfileNumber
+                # Intentar obtenerlo del perfil del usuario
+                profile = self.get_user_profile()
+                if profile and 'id' in profile:
+                    user_id = profile['id']
+                    gear = self.client.get_gear(userProfileNumber=user_id)
+                    return gear if gear else []
+                else:
+                    self.logger.debug("No se pudo obtener ID del usuario para get_gear")
+                    return []
+            except (TypeError, ValueError):
+                # get_gear puede requerir parametros que no disponemos
+                self.logger.debug("get_gear no disponible con los parametros actuales")
+                return []
         except Exception as e:
             self.logger.warning("Error obteniendo equipamiento: %s", e)
             return []

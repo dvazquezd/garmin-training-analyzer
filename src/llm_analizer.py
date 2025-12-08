@@ -141,7 +141,7 @@ class LLMAnalyzer:
         Returns:
             ChatPromptTemplate: Template configurado para LangChain
         """
-        # Usar el system prompt como base y crear template simple
+        # Siempre incluir el system prompt
         system_prompt = PromptManager.get_system_prompt()
 
         # Template simple que concatena system prompt + datos
@@ -159,7 +159,8 @@ class LLMAnalyzer:
         activities_details: List[Dict],
         user_profile: Dict[str, Any],
         body_composition: List[Dict],
-        training_plan: Optional[str] = None
+        training_plan: Optional[str] = None,
+        wellness_data: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:
         """
         Analiza el entrenamiento usando LangChain.
@@ -188,7 +189,8 @@ class LLMAnalyzer:
                 activities_details,
                 user_profile,
                 body_composition,
-                training_plan
+                training_plan,
+                wellness_data=wellness_data
             )
 
             # Invocar la cadena con datos completos
@@ -212,7 +214,8 @@ class LLMAnalyzer:
         activities_details: List[Dict],
         user_profile: Dict[str, Any],
         body_composition: List[Dict],
-        training_plan: Optional[str]
+        training_plan: Optional[str],
+        wellness_data: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Formatea todos los datos para el prompt.
