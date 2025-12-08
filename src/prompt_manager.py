@@ -241,8 +241,11 @@ def verify_prompts_setup() -> None:
         # Mostrar preview
         print("\n👀 Preview del System Prompt (primeras 200 caracteres):")
         system_prompt = PromptManager.get_system_prompt()
-        print(f"   {system_prompt[:200]}...")
-        
+        if system_prompt:
+            print(f"   {system_prompt[:200]}...")
+        else:
+            print("   (vacío)")
+    
     else:
         print("\n❌ Errores encontrados:")
         for error in errors:

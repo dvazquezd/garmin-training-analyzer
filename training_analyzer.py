@@ -205,6 +205,9 @@ class TrainingAnalyzer:
         # Configurar handlers con UTF-8
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
+        # Asegurar que el console handler usa UTF-8
+        if hasattr(console_handler, 'stream') and hasattr(console_handler.stream, 'reconfigure'):
+            console_handler.stream.reconfigure(encoding='utf-8')
         
         file_handler = logging.FileHandler(
             'training_analyzer.log',

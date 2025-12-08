@@ -408,8 +408,16 @@ class GarminClient:
         
         try:
             try:
-                gear = self.client.get_gear()
-                return gear if gear else []
+                # get_gear requiere userProfileNumber
+                # Intentar obtenerlo del perfil del usuario
+                profile = self.get_user_profile()
+                if profile and 'id' in profile:
+                    user_id = profile['id']
+                    gear = self.client.get_gear(userProfileNumber=user_id)
+                    return gear if gear else []
+                else:
+                    self.logger.debug("No se pudo obtener ID del usuario para get_gear")
+                    return []
             except (TypeError, ValueError):
                 # get_gear puede requerir parametros que no disponemos
                 self.logger.debug("get_gear no disponible con los parametros actuales")

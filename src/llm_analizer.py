@@ -106,12 +106,15 @@ class LLMAnalyzer:
         self.logger.info(f"Inicializando LLM: {provider} ({llm_config['model']})")
         
         if provider == 'anthropic':
-            return ChatAnthropic(
-                model=llm_config['model'],
-                anthropic_api_key=llm_config['api_key'],
-                max_tokens=Config.MAX_TOKENS,
-                temperature=Config.TEMPERATURE
-            )
+            # Preparar kwargs para Anthropic
+            anthropic_kwargs = {
+                'model': llm_config['model'],
+                'anthropic_api_key': llm_config['api_key'],
+                'max_tokens': Config.MAX_TOKENS,
+                'temperature': Config.TEMPERATURE
+            }
+            
+            return ChatAnthropic(**anthropic_kwargs)
         
         elif provider == 'openai':
             return ChatOpenAI(
@@ -139,10 +142,8 @@ class LLMAnalyzer:
         Returns:
             ChatPromptTemplate: Template configurado para LangChain
         """
-        # Usar el system prompt como base y crear template simple
+        # Siempre incluir el system prompt
         system_prompt = PromptManager.get_system_prompt()
-        
-        # Template simple que concatena system prompt + datos
         template = system_prompt + "\n\n{data}"
         
         return ChatPromptTemplate.from_template(template)

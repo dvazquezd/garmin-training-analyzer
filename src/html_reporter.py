@@ -7,7 +7,7 @@ import base64
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from jinja2 import Template
 import markdown
 

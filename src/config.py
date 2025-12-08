@@ -106,6 +106,7 @@ if __name__ == "__main__":
         llm_config = Config.get_llm_config()
         print(f"  Modelo: {llm_config['model']}")
         print(f"  API Key configurada: Si")
+        
         print(f"\nAnalisis:")
         print(f"  Dias: {Config.ANALYSIS_DAYS}")
         print(f"  Max tokens: {Config.MAX_TOKENS}")
