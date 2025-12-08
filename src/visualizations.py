@@ -58,29 +58,29 @@ class TrainingVisualizer:
                 weight_chart = self.plot_body_composition(body_composition, timestamp)
                 if weight_chart:
                     charts['body_composition'] = weight_chart
-                    self.logger.info(f"Gráfico de composición corporal generado: {weight_chart}")
+                    self.logger.info("Gráfico de composición corporal generado: %s", weight_chart)
 
             # 2. Distribución de tipos de actividad
             if activities:
                 activity_dist = self.plot_activity_distribution(activities, timestamp)
                 if activity_dist:
                     charts['activity_distribution'] = activity_dist
-                    self.logger.info(f"Gráfico de distribución generado: {activity_dist}")
+                    self.logger.info("Gráfico de distribución generado: %s", activity_dist)
 
                 # 3. Volumen semanal
                 volume_chart = self.plot_weekly_volume(activities, timestamp)
                 if volume_chart:
                     charts['weekly_volume'] = volume_chart
-                    self.logger.info(f"Gráfico de volumen semanal generado: {volume_chart}")
+                    self.logger.info("Gráfico de volumen semanal generado: %s", volume_chart)
 
                 # 4. Zonas de frecuencia cardíaca
                 hr_chart = self.plot_heart_rate_zones(activities, timestamp)
                 if hr_chart:
                     charts['heart_rate_zones'] = hr_chart
-                    self.logger.info(f"Gráfico de zonas de FC generado: {hr_chart}")
+                    self.logger.info("Gráfico de zonas de FC generado: %s", hr_chart)
 
         except Exception as e:
-            self.logger.error(f"Error generando gráficos: {e}")
+            self.logger.error("Error generando gráficos: %s", e)
 
         return charts
 
@@ -200,7 +200,7 @@ class TrainingVisualizer:
             return output_path
 
         except Exception as e:
-            self.logger.error(f"Error generando gráfico de composición corporal: {e}")
+            self.logger.error("Error generando gráfico de composición corporal: %s", e)
             plt.close()
             return None
 
@@ -260,7 +260,7 @@ class TrainingVisualizer:
             return output_path
 
         except Exception as e:
-            self.logger.error(f"Error generando gráfico de distribución: {e}")
+            self.logger.error("Error generando gráfico de distribución: %s", e)
             plt.close()
             return None
 
@@ -344,7 +344,7 @@ class TrainingVisualizer:
             return output_path
 
         except Exception as e:
-            self.logger.error(f"Error generando gráfico de volumen semanal: {e}")
+            self.logger.error("Error generando gráfico de volumen semanal: %s", e)
             plt.close()
             return None
 
@@ -398,7 +398,7 @@ class TrainingVisualizer:
             return output_path
 
         except Exception as e:
-            self.logger.error(f"Error generando gráfico de zonas de FC: {e}")
+            self.logger.error("Error generando gráfico de zonas de FC: %s", e)
             plt.close()
             return None
 

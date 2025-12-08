@@ -12,7 +12,7 @@ from jinja2 import Template
 import markdown
 
 
-class HTMLReporter:
+class HTMLReporter:  # pylint: disable=too-few-public-methods
     """Genera reportes HTML con diseño responsive y gráficos embebidos."""
 
     def __init__(self, output_dir: str = "analysis_reports"):
@@ -26,7 +26,7 @@ class HTMLReporter:
         self.output_dir.mkdir(exist_ok=True)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def generate_report(
+    def generate_report(  # pylint: disable=too-many-positional-arguments,too-many-arguments
         self,
         activities: List[Any],
         analysis: str,
@@ -74,11 +74,11 @@ class HTMLReporter:
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html_content)
 
-            self.logger.info(f"Reporte HTML generado: {output_path}")
+            self.logger.info("Reporte HTML generado: %s", output_path)
             return output_path
 
         except Exception as e:
-            self.logger.error(f"Error generando reporte HTML: {e}")
+            self.logger.error("Error generando reporte HTML: %s", e)
             raise
 
     def _embed_charts(self, charts: Dict[str, Path]) -> Dict[str, str]:
@@ -100,7 +100,7 @@ class HTMLReporter:
                         base64_data = base64.b64encode(img_data).decode('utf-8')
                         embedded[chart_type] = f"data:image/png;base64,{base64_data}"
             except Exception as e:
-                self.logger.warning(f"No se pudo embeber gráfico {chart_type}: {e}")
+                self.logger.warning("No se pudo embeber gráfico %s: %s", chart_type, e)
 
         return embedded
 
@@ -154,7 +154,7 @@ class HTMLReporter:
             'weight_change': (weight_end - weight_start) if (weight_start and weight_end) else None
         }
 
-    def _render_template(
+    def _render_template(  # pylint: disable=too-many-arguments,too-many-positional-arguments,unused-argument
         self,
         activities: List[Any],
         analysis: str,
@@ -730,7 +730,6 @@ class HTMLReporter:
 
 if __name__ == "__main__":
     # Demo
-    import logging
     logging.basicConfig(level=logging.INFO)
     reporter = HTMLReporter()
     print(f"HTML Reporter inicializado. Output: {reporter.output_dir}")

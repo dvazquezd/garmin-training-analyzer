@@ -1,9 +1,12 @@
 """
 Tests para el módulo de configuración (src/config.py).
 """
+# pylint: disable=unused-import,redefined-outer-name,reimported
+# pylint: disable=import-outside-toplevel,unused-argument
 
-import pytest
-from src.config import Config
+import pytest  # noqa: F401
+
+from src.config import Config  # noqa: F401
 
 
 class TestConfig:
@@ -13,32 +16,32 @@ class TestConfig:
         """Test que Config carga correctamente desde variables de entorno."""
         # Recargar Config para que tome las variables mockeadas
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        assert Config.GARMIN_EMAIL == 'test@example.com'
-        assert Config.GARMIN_PASSWORD == 'test_password'
-        assert Config.LLM_PROVIDER == 'anthropic'
-        assert Config.ANTHROPIC_API_KEY == 'test-api-key-123'
-        assert Config.ANALYSIS_DAYS == 30
-        assert Config.MAX_TOKENS == 3000
-        assert Config.TEMPERATURE == 0.7
+        assert TestConfig.GARMIN_EMAIL == 'test@example.com'
+        assert TestConfig.GARMIN_PASSWORD == 'test_password'
+        assert TestConfig.LLM_PROVIDER == 'anthropic'
+        assert TestConfig.ANTHROPIC_API_KEY == 'test-api-key-123'
+        assert TestConfig.ANALYSIS_DAYS == 30
+        assert TestConfig.MAX_TOKENS == 3000
+        assert TestConfig.TEMPERATURE == 0.7
 
     def test_get_llm_config_anthropic(self, mock_env_vars, monkeypatch):
         """Test que get_llm_config retorna configuración de Anthropic."""
         monkeypatch.setenv('LLM_PROVIDER', 'anthropic')
 
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        llm_config = Config.get_llm_config()
+        llm_config = TestConfig.get_llm_config()
 
         assert llm_config['provider'] == 'anthropic'
         assert llm_config['api_key'] == 'test-api-key-123'
-        assert llm_config['model'] == Config.ANTHROPIC_MODEL
+        assert llm_config['model'] == TestConfig.ANTHROPIC_MODEL
 
     def test_get_llm_config_openai(self, mock_env_vars, monkeypatch):
         """Test que get_llm_config retorna configuración de OpenAI."""
@@ -46,15 +49,15 @@ class TestConfig:
         monkeypatch.setenv('OPENAI_API_KEY', 'test-openai-key')
 
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        llm_config = Config.get_llm_config()
+        llm_config = TestConfig.get_llm_config()
 
         assert llm_config['provider'] == 'openai'
         assert llm_config['api_key'] == 'test-openai-key'
-        assert llm_config['model'] == Config.OPENAI_MODEL
+        assert llm_config['model'] == TestConfig.OPENAI_MODEL
 
     def test_get_llm_config_google(self, mock_env_vars, monkeypatch):
         """Test que get_llm_config retorna configuración de Google."""
@@ -62,24 +65,24 @@ class TestConfig:
         monkeypatch.setenv('GOOGLE_API_KEY', 'test-google-key')
 
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        llm_config = Config.get_llm_config()
+        llm_config = TestConfig.get_llm_config()
 
         assert llm_config['provider'] == 'google'
         assert llm_config['api_key'] == 'test-google-key'
-        assert llm_config['model'] == Config.GOOGLE_MODEL
+        assert llm_config['model'] == TestConfig.GOOGLE_MODEL
 
     def test_validate_success(self, mock_env_vars):
         """Test que validate retorna True con configuración válida."""
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        is_valid, errors = Config.validate()
+        is_valid, errors = TestConfig.validate()
 
         assert is_valid is True
         assert len(errors) == 0
@@ -89,11 +92,11 @@ class TestConfig:
         monkeypatch.setenv('GARMIN_EMAIL', '')
 
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        is_valid, errors = Config.validate()
+        is_valid, errors = TestConfig.validate()
 
         assert is_valid is False
         assert any('GARMIN_EMAIL' in error for error in errors)
@@ -103,11 +106,11 @@ class TestConfig:
         monkeypatch.setenv('ANTHROPIC_API_KEY', '')
 
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        is_valid, errors = Config.validate()
+        is_valid, errors = TestConfig.validate()
 
         assert is_valid is False
         assert any('API_KEY' in error for error in errors)
@@ -119,11 +122,11 @@ class TestConfig:
             monkeypatch.delenv(key, raising=False)
 
         from importlib import reload
-        from src import config
-        reload(config)
-        from src.config import Config
+        import src.config
+        reload(src.config)
+        from src.config import Config as TestConfig
 
-        assert Config.ANALYSIS_DAYS == 30
-        assert Config.MAX_TOKENS == 3000
-        assert Config.TEMPERATURE == 0.7
-        assert Config.LLM_PROVIDER == 'anthropic'
+        assert TestConfig.ANALYSIS_DAYS == 30
+        assert TestConfig.MAX_TOKENS == 3000
+        assert TestConfig.TEMPERATURE == 0.7
+        assert TestConfig.LLM_PROVIDER == 'anthropic'
