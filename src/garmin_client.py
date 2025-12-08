@@ -5,7 +5,7 @@ Proporciona acceso a actividades, metricas de salud y composicion corporal.
 
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict, Optional, Any, Callable
 from functools import wraps
 from garminconnect import Garmin
@@ -226,14 +226,6 @@ class GarminClient:
                 "unit_system": self.client.get_unit_system()
             }
 
-            # Intentar obtener settings adicionales
-            try:
-                settings = self.client.get_user_settings()
-                if settings:
-                    profile["settings"] = settings
-            except:
-                pass
-
             self.logger.info(f"Perfil obtenido: {profile['name']}")
 
             # Guardar en caché
@@ -415,8 +407,82 @@ class GarminClient:
             return []
         
         try:
-            gear = self.client.get_gear()
-            return gear if gear else []
+            try:
+                gear = self.client.get_gear()
+                return gear if gear else []
+            except (TypeError, ValueError):
+                # get_gear puede requerir parametros que no disponemos
+                self.logger.debug("get_gear no disponible con los parametros actuales")
+                return []
         except Exception as e:
             self.logger.warning(f"Error obteniendo equipamiento: {e}")
             return []
+
+    @retry_with_backoff()
+    def get_training_readiness(self, date: datetime) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene la predisposición para entrenar (Training Readiness) de una fecha.
+        
+        Args:
+            date: Fecha para obtener la predisposición
+            
+        Returns:
+            Datos de predisposición o None si hay error
+        """
+        if not self.client:
+            self.logger.error("Cliente no conectado")
+            return None
+        
+        try:
+            date_str = date.strftime("%Y-%m-%d")
+            readiness = self.client.get_training_readiness(date_str)
+            return readiness
+        except Exception as e:
+            self.logger.warning(f"Error obteniendo training readiness para {date}: {e}")
+            return None
+
+    @retry_with_backoff()
+    def get_sleep_data(self, date: datetime) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene datos de sueño de una fecha.
+        
+        Args:
+            date: Fecha para obtener datos de sueño
+            
+        Returns:
+            Datos de sueño o None si hay error
+        """
+        if not self.client:
+            self.logger.error("Cliente no conectado")
+            return None
+        
+        try:
+            date_str = date.strftime("%Y-%m-%d")
+            sleep_data = self.client.get_sleep_data(date_str)
+            return sleep_data
+        except Exception as e:
+            self.logger.warning(f"Error obteniendo datos de sueño para {date}: {e}")
+            return None
+
+    @retry_with_backoff()
+    def get_training_status(self, date: datetime) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene el estado del entrenamiento de una fecha.
+        
+        Args:
+            date: Fecha para obtener estado del entrenamiento
+            
+        Returns:
+            Datos de estado del entrenamiento o None si hay error
+        """
+        if not self.client:
+            self.logger.error("Cliente no conectado")
+            return None
+        
+        try:
+            date_str = date.strftime("%Y-%m-%d")
+            training_status = self.client.get_training_status(date_str)
+            return training_status
+        except Exception as e:
+            self.logger.warning(f"Error obteniendo training status para {date}: {e}")
+            return None

@@ -5,12 +5,20 @@ Autor: Sistema de Analisis Deportivo
 """
 
 import os
+import sys
 import json
 import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass, asdict
 from pathlib import Path
+
+# Configurar encoding UTF-8 para stdout/stderr en Windows
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 from src.garmin_client import GarminClient
 from src.llm_analizer import LLMAnalyzer
 from src.config import Config
@@ -166,7 +174,7 @@ class TrainingAnalyzer:
             config: Configuracion del analisis
         """
         self.config = config
-        self.llm_provider = Config.LLM_PROVIDER  #  Anade esta linea
+        self.llm_provider = Config.LLM_PROVIDER  
         self.logger = self._setup_logging()
 
 
@@ -267,26 +275,30 @@ class TrainingAnalyzer:
         body_composition = self.garmin_client.get_body_composition(start_date, end_date)
         self.logger.info(f"{len(body_composition)} mediciones de composicion corporal obtenidas")
         
-        # 7. Cargar plan de TrainingPeaks (si existe)
+        # 7. Obtener métricas avanzadas (Sleep, Readiness, Training Status)
+        wellness_data = self._collect_wellness_metrics(start_date, end_date)
+        
+        # 8. Cargar plan de TrainingPeaks (si existe)
         training_plan = self.tp_manager.load_training_plan()
         
-        # 8. Analizar con LLM
+        # 9. Analizar con LLM
         analysis = self.llm_analyzer.analyze_training(
             activities,
             activities_details,
             user_profile,
             body_composition,
-            training_plan
+            training_plan,
+            wellness_data=wellness_data
         )
         
         if not analysis:
             self.logger.error("No se pudo generar el analisis")
             return False
         
-        # 9. Guardar resultados
-        self._save_results(activities, analysis, user_profile, body_composition)
+        # 10. Guardar resultados
+        self._save_results(activities, analysis, user_profile, body_composition, wellness_data)
         
-        # 10. Mostrar resultados
+        # 11. Mostrar resultados
         self._display_results(analysis)
         
         self.logger.info("Analisis completado exitosamente")
@@ -297,7 +309,8 @@ class TrainingAnalyzer:
         activities: List[ActivityData],
         analysis: str,
         user_profile: Dict[str, Any],
-        body_composition: List[Dict] = None
+        body_composition: List[Dict] = None,
+        wellness_data: Dict[str, Any] = None
     ) -> None:
         """Guarda los resultados del analisis en TXT, Markdown y JSON."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -307,6 +320,8 @@ class TrainingAnalyzer:
         # Generar visualizaciones
         if body_composition is None:
             body_composition = []
+        if wellness_data is None:
+            wellness_data = {}
 
         self.logger.info("Generando gráficos...")
         charts = self.visualizer.generate_all_charts(
@@ -315,7 +330,8 @@ class TrainingAnalyzer:
             timestamp
         )
         if charts:
-            self.logger.info(f"✓ {len(charts)} gráfico(s) generado(s):")
+            # Usar "[OK]" en lugar de "✓" para compatibilidad con Windows console
+            self.logger.info(f"[OK] {len(charts)} grafico(s) generado(s):")
             for chart_type, chart_path in charts.items():
                 self.logger.info(f"    {chart_type}: {chart_path}")
         
@@ -421,18 +437,86 @@ class TrainingAnalyzer:
         if html_path:
             self.logger.info(f"    HTML: {html_path}")
 
+    def _collect_wellness_metrics(self, start_date: datetime, end_date: datetime) -> Dict[str, Any]:
+        """
+        Recopila métricas de bienestar: sueño, predisposición, estado del entrenamiento.
+        
+        Args:
+            start_date: Fecha de inicio
+            end_date: Fecha de fin
+            
+        Returns:
+            Diccionario con métricas de bienestar
+        """
+        wellness_data = {
+            'sleep': [],
+            'readiness': [],
+            'training_status': []
+        }
+        
+        try:
+            self.logger.info("Recopilando métricas de bienestar (sueño, predisposición, estado)...")
+            
+            # Iterar sobre cada día del rango
+            current_date = start_date
+            while current_date <= end_date:
+                # Obtener sueño
+                sleep_data = self.garmin_client.get_sleep_data(current_date)
+                if sleep_data:
+                    wellness_data['sleep'].append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'data': sleep_data
+                    })
+                
+                # Obtener predisposición para entrenar
+                readiness_data = self.garmin_client.get_training_readiness(current_date)
+                if readiness_data:
+                    wellness_data['readiness'].append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'data': readiness_data
+                    })
+                
+                # Obtener estado del entrenamiento
+                training_status = self.garmin_client.get_training_status(current_date)
+                if training_status:
+                    wellness_data['training_status'].append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'data': training_status
+                    })
+                
+                current_date += timedelta(days=1)
+            
+            # Log de resultados
+            self.logger.info(f"Metricas recopiladas - Sleep: {len(wellness_data['sleep'])}, "
+                           f"Readiness: {len(wellness_data['readiness'])}, "
+                           f"Training Status: {len(wellness_data['training_status'])}")
+            
+            return wellness_data
+            
+        except Exception as e:
+            self.logger.warning(f"Error recopilando métricas de bienestar: {e}")
+            return wellness_data
+
     def _get_model_name(self) -> str:
         """Obtiene el nombre del modelo usado."""
         llm_config = Config.get_llm_config()
         return llm_config.get('model', 'Unknown')
     
     def _display_results(self, analysis: str) -> None:
-        """Muestra los resultados en pantalla."""
-        print("\n" + "=" * 60)
-        print(" ANÁLISIS Y RECOMENDACIONES")
-        print("=" * 60 + "\n")
-        print(analysis)
-        print("\n" + "=" * 60 + "\n")
+        """Muestra resumen de resultados (análisis completo guardado en archivos)."""
+        try:
+            print("\n" + "=" * 60)
+            print(" ANALISIS COMPLETADO")
+            print("=" * 60)
+            print("\nLos resultados se han guardado en los siguientes archivos:")
+            print("  • analysis_reports/analisis_[timestamp].txt")
+            print("  • analysis_reports/analisis_[timestamp].md")
+            print("  • analysis_reports/datos_[timestamp].json")
+            print("  • analysis_reports/reporte_[timestamp].html")
+            print("\nPara ver el analisis completo, abre el reporte HTML en tu navegador.")
+            print("=" * 60 + "\n")
+        except Exception as e:
+            self.logger.error(f"Error mostrando resumen: {e}")
 
 
 # ========================================
