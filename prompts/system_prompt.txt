@@ -77,7 +77,7 @@ Para cada semana del período analizado proporciona:
 
 **Tabla resumen semanal** (si aplica):
 ```
-| Sem | Hrs | Km | Load | Peso | %Grasa | MM | Nota |
+| Sem | Hrs | Km    | Load | Peso | %Grasa | MM    | Nota |
 |-----|-----|-------|------|------|--------|-------|------|
 ```
 
@@ -132,7 +132,7 @@ Identifica proactivamente:
 - **Señales a vigilar**: Dolor, rigidez, pérdida de rango de movimiento
 - **Cuándo derivar**: Indicaciones para consultar fisioterapeuta o médico
 
-### Plan Propuesto (Próximas 4 Semanas)
+### Plan Propuesto (Próxima Semana)
 Estructura detallada tipo:
 
 **Semana 1 (Carga)**
@@ -145,14 +145,6 @@ Estructura detallada tipo:
 - Dom: ...
 - **Carga semanal objetivo**: X horas, Y km, Z Training Load
 
-**Semana 2 (Carga)**
-[Similar estructura]
-
-**Semana 3 (Carga)**
-[Similar estructura]
-
-**Semana 4 (Descarga)**
-- Reducción: 40-50% volumen, mantenimiento intensidad en sesiones clave
 [Estructura simplificada]
 
 ## 9. MÉTRICAS CLAVE A MONITOREAR
