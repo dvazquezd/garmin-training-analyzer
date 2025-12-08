@@ -134,15 +134,15 @@ class CacheManager:
                 expires_dt = datetime.fromisoformat(expires_at)
 
                 if datetime.now() < expires_dt:
-                    self.logger.info(f"Cache HIT para actividades ({start_date} - {end_date})")
+                    self.logger.info("Cache HIT para actividades (%s - %s)", start_date, end_date)
                     return json.loads(data_json)
                 else:
-                    self.logger.info(f"Cache EXPIRED para actividades ({start_date} - {end_date})")
+                    self.logger.info("Cache EXPIRED para actividades (%s - %s)", start_date, end_date)
                     # Eliminar entrada expirada
                     cursor.execute("DELETE FROM activities_cache WHERE cache_key = ?", (cache_key,))
                     conn.commit()
             else:
-                self.logger.info(f"Cache MISS para actividades ({start_date} - {end_date})")
+                self.logger.info("Cache MISS para actividades (%s - %s)", start_date, end_date)
 
             return None
 
@@ -178,7 +178,7 @@ class CacheManager:
             ))
             conn.commit()
 
-        self.logger.info(f"Actividades cacheadas ({start_date} - {end_date}), expira: {expires_at}")
+        self.logger.info("Actividades cacheadas (%s - %s), expira: %s", start_date, end_date, expires_at)
 
     def get_body_composition(self, start_date: str, end_date: str) -> Optional[List[Dict]]:
         """
@@ -211,14 +211,14 @@ class CacheManager:
                 expires_dt = datetime.fromisoformat(expires_at)
 
                 if datetime.now() < expires_dt:
-                    self.logger.info(f"Cache HIT para composición corporal ({start_date} - {end_date})")
+                    self.logger.info("Cache HIT para composición corporal (%s - %s)", start_date, end_date)
                     return json.loads(data_json)
                 else:
-                    self.logger.info(f"Cache EXPIRED para composición corporal ({start_date} - {end_date})")
+                    self.logger.info("Cache EXPIRED para composición corporal (%s - %s)", start_date, end_date)
                     cursor.execute("DELETE FROM body_composition_cache WHERE cache_key = ?", (cache_key,))
                     conn.commit()
             else:
-                self.logger.info(f"Cache MISS para composición corporal ({start_date} - {end_date})")
+                self.logger.info("Cache MISS para composición corporal (%s - %s)", start_date, end_date)
 
             return None
 
@@ -254,7 +254,7 @@ class CacheManager:
             ))
             conn.commit()
 
-        self.logger.info(f"Composición corporal cacheada ({start_date} - {end_date}), expira: {expires_at}")
+        self.logger.info("Composición corporal cacheada (%s - %s), expira: %s", start_date, end_date, expires_at)
 
     def get_user_profile(self, user_id: str = "default") -> Optional[Dict]:
         """
@@ -282,14 +282,14 @@ class CacheManager:
                 expires_dt = datetime.fromisoformat(expires_at)
 
                 if datetime.now() < expires_dt:
-                    self.logger.info(f"Cache HIT para perfil de usuario")
+                    self.logger.info("Cache HIT para perfil de usuario")
                     return json.loads(data_json)
                 else:
-                    self.logger.info(f"Cache EXPIRED para perfil de usuario")
+                    self.logger.info("Cache EXPIRED para perfil de usuario")
                     cursor.execute("DELETE FROM user_profile_cache WHERE cache_key = ?", (cache_key,))
                     conn.commit()
             else:
-                self.logger.info(f"Cache MISS para perfil de usuario")
+                self.logger.info("Cache MISS para perfil de usuario")
 
             return None
 
@@ -320,7 +320,7 @@ class CacheManager:
             ))
             conn.commit()
 
-        self.logger.info(f"Perfil de usuario cacheado, expira: {expires_at}")
+        self.logger.info("Perfil de usuario cacheado, expira: %s", expires_at)
 
     def clear_expired(self):
         """Elimina todas las entradas expiradas del caché."""
@@ -345,7 +345,7 @@ class CacheManager:
 
         total_deleted = activities_deleted + composition_deleted + profiles_deleted
         if total_deleted > 0:
-            self.logger.info(f"Eliminadas {total_deleted} entradas expiradas del caché")
+            self.logger.info("Eliminadas %s entradas expiradas del caché", total_deleted)
 
     def clear_all(self):
         """Limpia todo el caché."""
