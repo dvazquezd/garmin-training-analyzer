@@ -68,10 +68,11 @@ class LLMFactory:
                         self._temperature = temperature
 
                     def generate(self, prompt_text: str) -> str:
-                        # Minimal call pattern; real implementation should map
-                        # messages/roles and use appropriate client API.
-                        resp = self._client.create(prompt=prompt_text)
-                        return getattr(resp, 'text', str(resp))
+                        # Use invoke() with messages as required by LangChain chat models
+                        from langchain_core.messages import HumanMessage
+                        messages = [HumanMessage(content=prompt_text)]
+                        resp = self._client.invoke(messages)
+                        return resp.content
 
                 return LangChainWrapper(
                     model=llm_config.get('model') or Config.ANTHROPIC_MODEL,
@@ -92,8 +93,11 @@ class LLMFactory:
                         self._temperature = temperature
 
                     def generate(self, prompt_text: str) -> str:
-                        resp = self._client.create(prompt=prompt_text)
-                        return getattr(resp, 'text', str(resp))
+                        # Use invoke() with messages as required by LangChain chat models
+                        from langchain_core.messages import HumanMessage
+                        messages = [HumanMessage(content=prompt_text)]
+                        resp = self._client.invoke(messages)
+                        return resp.content
 
                 return LangChainWrapper(
                     model=llm_config.get('model') or Config.OPENAI_MODEL,
@@ -114,8 +118,11 @@ class LLMFactory:
                         self._temperature = temperature
 
                     def generate(self, prompt_text: str) -> str:
-                        resp = self._client.create(prompt=prompt_text)
-                        return getattr(resp, 'text', str(resp))
+                        # Use invoke() with messages as required by LangChain chat models
+                        from langchain_core.messages import HumanMessage
+                        messages = [HumanMessage(content=prompt_text)]
+                        resp = self._client.invoke(messages)
+                        return resp.content
 
                 return LangChainWrapper(
                     model=llm_config.get('model') or Config.GOOGLE_MODEL,
