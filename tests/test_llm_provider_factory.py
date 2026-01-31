@@ -13,8 +13,10 @@ def test_factory_returns_claude_provider(monkeypatch):
             self.model = model
             self.key = anthropic_api_key
 
-        def create(self, prompt):
-            return SimpleNamespace(text=f"CLAUDE_OK: {prompt}")
+        def invoke(self, messages):
+            # Extract content from HumanMessage
+            prompt = messages[0].content if messages else ""
+            return SimpleNamespace(content=f"CLAUDE_OK: {prompt}")
 
     fake_module = types.SimpleNamespace(ChatAnthropic=FakeChatAnthropic)
     monkeypatch.setitem(sys.modules, 'langchain_anthropic', fake_module)
