@@ -31,7 +31,8 @@ class LLMFactory:
 
         # Lazy import to avoid hard dependency during tests
         try:
-            if provider == 'anthropic':
+            if provider in ('anthropic', 'claude'):
+                # Support both 'anthropic' and explicit 'claude' provider names.
                 from langchain_anthropic import ChatAnthropic  # type: ignore
                 # This is a very small wrapper around the Chat* classes. In a
                 # later PR we can provide a full-featured adapter.
