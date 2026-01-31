@@ -135,4 +135,4 @@ class LLMFactory:
                 raise RuntimeError(f"LLM provider not supported: {provider}")
 
         except Exception as e:
-            raise RuntimeError("Could not initialize LLM provider: %s" % e)
+            raise RuntimeError(f"Could not initialize LLM provider: {e}") from e
