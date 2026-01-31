@@ -7,14 +7,12 @@ import logging
 import traceback
 from typing import List, Dict, Any, Optional
 
-from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from src.config import Config
 from src.prompt_manager import PromptManager
+from src.llm_provider import LLMFactory
 
 
 class LLMAnalyzer:
@@ -35,30 +33,21 @@ class LLMAnalyzer:
         # Validar que los prompts existan
         self._validate_prompts()
 
+        # Create prompt template early (used for diagnostics or advanced providers)
+        self.prompt_template = self._create_prompt_template()
+
         # If a provider is injected (tests/custom), use it
         if provider is not None:
             self.provider = provider
-            # keep chain attribute if provided
+            # keep chain attribute if provided (for compatibility)
             self.chain = getattr(provider, 'chain', None)
-            self.prompt_template = self._create_prompt_template()
             return
 
-        # Otherwise, build default chain using existing _initialize_llm
-        llm = self._initialize_llm()
-        self.prompt_template = self._create_prompt_template()
-        chain = self.prompt_template | llm | StrOutputParser()
-        self.chain = chain
-
-        # Adapter that exposes a simple generate(prompt_text) API
-        class _LegacyProviderAdapter:
-            def __init__(self, chain_obj):
-                self.chain = chain_obj
-
-            def generate(self, prompt_text: str) -> str:
-                # The chain expects the variable 'data' in the template
-                return self.chain.invoke({"data": prompt_text})
-
-        self.provider = _LegacyProviderAdapter(chain)
+        # Otherwise, build provider using factory (handles lazy imports)
+        llm_config = Config.get_llm_config()
+        self.provider = LLMFactory.get_provider(llm_config)
+        # keep chain if factory-provided object exposes it
+        self.chain = getattr(self.provider, 'chain', None)
 
     # ========================================
     # MÉTODOS ESTÁTICOS: ACCESO A PROMPTS
@@ -118,45 +107,11 @@ class LLMAnalyzer:
 
     def _initialize_llm(self):
         """
-        Inicializa el LLM según la configuración.
-
-        Returns:
-            Instancia del LLM configurado
-
-        Raises:
-            ValueError: Si el proveedor no está soportado
+        Deprecated: factory-based initialization.
+        Returns a provider instance from LLMFactory for backward compatibility.
         """
         llm_config = Config.get_llm_config()
-        provider = llm_config['provider']
-
-        self.logger.info("Inicializando LLM: %s (%s)", provider, llm_config['model'])
-
-        if provider == 'anthropic':
-            return ChatAnthropic(
-                model=llm_config['model'],
-                anthropic_api_key=llm_config['api_key'],
-                max_tokens=Config.MAX_TOKENS,
-                temperature=Config.TEMPERATURE
-            )
-
-        elif provider == 'openai':
-            return ChatOpenAI(
-                model=llm_config['model'],
-                openai_api_key=llm_config['api_key'],
-                max_tokens=Config.MAX_TOKENS,
-                temperature=Config.TEMPERATURE
-            )
-
-        elif provider == 'google':
-            return ChatGoogleGenerativeAI(
-                model=llm_config['model'],
-                google_api_key=llm_config['api_key'],
-                max_tokens=Config.MAX_TOKENS,
-                temperature=Config.TEMPERATURE
-            )
-
-        else:
-            raise ValueError(f"Proveedor LLM no soportado: {provider}")
+        return LLMFactory.get_provider(llm_config)
 
     def _create_prompt_template(self) -> ChatPromptTemplate:
         """

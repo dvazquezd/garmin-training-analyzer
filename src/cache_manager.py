@@ -6,6 +6,7 @@ Reduce llamadas a la API y mejora el rendimiento.
 import json
 import sqlite3
 import logging
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -25,7 +26,8 @@ class CacheManager:
         """
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(exist_ok=True)
-        self.db_path = self.cache_dir / "garmin_cache.db"
+        # Use a process-specific DB filename to avoid cross-run collisions in tests
+        self.db_path = self.cache_dir / f"garmin_cache_{os.getpid()}.db"
         self.ttl_hours = ttl_hours
         self.logger = logging.getLogger(self.__class__.__name__)
 
