@@ -17,8 +17,10 @@ def test_factory_reads_api_key_from_env_for_anthropic(monkeypatch):
             self.model = model
             self.key = anthropic_api_key
 
-        def create(self, prompt):
-            return SimpleNamespace(text=f"CLAUDE_OK: {self.key}:{prompt}")
+        def invoke(self, messages):
+            # Extract content from HumanMessage
+            prompt = messages[0].content if messages else ""
+            return SimpleNamespace(content=f"CLAUDE_OK: {self.key}:{prompt}")
 
     fake_module = types.SimpleNamespace(ChatAnthropic=FakeChatAnthropic)
     monkeypatch.setitem(sys.modules, 'langchain_anthropic', fake_module)
@@ -37,8 +39,10 @@ def test_factory_reads_api_key_from_env_for_openai(monkeypatch):
             self.model = model
             self.key = openai_api_key
 
-        def create(self, prompt):
-            return SimpleNamespace(text=f"OPENAI_OK: {self.key}:{prompt}")
+        def invoke(self, messages):
+            # Extract content from HumanMessage
+            prompt = messages[0].content if messages else ""
+            return SimpleNamespace(content=f"OPENAI_OK: {self.key}:{prompt}")
 
     fake_module = types.SimpleNamespace(ChatOpenAI=FakeOpenAI)
     monkeypatch.setitem(sys.modules, 'langchain_openai', fake_module)
