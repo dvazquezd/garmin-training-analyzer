@@ -24,17 +24,41 @@ class LLMAnalyzer:
     # INICIALIZACIÓN
     # ========================================
 
-    def __init__(self):
-        """Inicializa el analizador con el LLM configurado."""
+    def __init__(self, provider: Optional[object] = None):
+        """Inicializa el analizador con el LLM configurado.
+
+        Args:
+            provider: Optional provider object implementing `generate(prompt_text)` for DI and testing.
+        """
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # Validar que los prompts existan
         self._validate_prompts()
 
-        # Inicializar componentes
-        self.llm = self._initialize_llm()
+        # If a provider is injected (tests/custom), use it
+        if provider is not None:
+            self.provider = provider
+            # keep chain attribute if provided
+            self.chain = getattr(provider, 'chain', None)
+            self.prompt_template = self._create_prompt_template()
+            return
+
+        # Otherwise, build default chain using existing _initialize_llm
+        llm = self._initialize_llm()
         self.prompt_template = self._create_prompt_template()
-        self.chain = self.prompt_template | self.llm | StrOutputParser()
+        chain = self.prompt_template | llm | StrOutputParser()
+        self.chain = chain
+
+        # Adapter that exposes a simple generate(prompt_text) API
+        class _LegacyProviderAdapter:
+            def __init__(self, chain_obj):
+                self.chain = chain_obj
+
+            def generate(self, prompt_text: str) -> str:
+                # The chain expects the variable 'data' in the template
+                return self.chain.invoke({"data": prompt_text})
+
+        self.provider = _LegacyProviderAdapter(chain)
 
     # ========================================
     # MÉTODOS ESTÁTICOS: ACCESO A PROMPTS
@@ -193,8 +217,12 @@ class LLMAnalyzer:
                 wellness_data=wellness_data
             )
 
-            # Invocar la cadena con datos completos
-            analysis = self.chain.invoke({"data": data_text})
+            # Use provider.generate(prompt_text) to obtain analysis
+            try:
+                analysis = self.provider.generate(data_text)
+            except Exception:
+                self.logger.error("Error generando análisis con provider", exc_info=True)
+                return None
 
             self.logger.info("Analisis completado")
             return analysis

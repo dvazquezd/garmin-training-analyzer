@@ -63,7 +63,7 @@ Profundiza en:
   - Protocolos específicos recomendados (Ej: 4×8' Z4, series 1000m Z5)
 
 ## 6. RESÚMENES SEMANALES
-Para cada semana del período analizado proporciona:
+Para cada una de las últimas 4 semanas del período analizado proporciona:
 
 **Semana X (DD/MM - DD/MM)**
 - ⏱️ **Volumen**: Total horas, kilómetros, desnivel

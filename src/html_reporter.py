@@ -418,6 +418,46 @@ class HTMLReporter:  # pylint: disable=too-few-public-methods
             text-transform: uppercase;
         }
 
+        /* Tablas en análisis con estilo minimalista */
+        .analysis table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+        }
+
+        .analysis table thead {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .analysis table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 400;
+            font-size: 0.75em;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000000;
+        }
+
+        .analysis table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #000000;
+            letter-spacing: 0.3px;
+        }
+
+        .analysis table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .analysis table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
         .analysis h1 {
             font-size: 1.6em;
             border-bottom: 1px solid #000000;
@@ -722,7 +762,7 @@ class HTMLReporter:  # pylint: disable=too-few-public-methods
             total_calories=stats.get('total_calories', 0),
             avg_hr=stats.get('avg_hr', 0),
             weight_change=stats.get('weight_change'),
-            activities=activities,
+            activities=activities[-20:],
             analysis=analysis_html,
             charts=charts
         )
