@@ -28,6 +28,29 @@ def _parse_bool(value: str | bool | None, default: bool = False) -> bool:
 
 @dataclass
 class ConfigSchema:
+    """Configuration schema with validation for all application settings.
+
+    This dataclass holds all configuration values loaded from environment
+    variables or .env files. Validation occurs in __post_init__ to ensure
+    values are within acceptable ranges.
+
+    Attributes:
+        garmin_email: Garmin Connect account email
+        garmin_password: Garmin Connect account password
+        llm_provider: LLM provider to use ('anthropic', 'openai', or 'google')
+        anthropic_api_key: API key for Anthropic Claude
+        openai_api_key: API key for OpenAI
+        google_api_key: API key for Google Gemini
+        anthropic_model: Model name for Anthropic
+        openai_model: Model name for OpenAI
+        google_model: Model name for Google
+        max_tokens: Maximum tokens for LLM responses
+        temperature: Temperature for LLM sampling (0.0-1.0)
+        analysis_days: Number of days to include in analysis (1-365)
+        use_cache: Whether to use caching for API responses
+        cache_ttl_hours: Cache time-to-live in hours
+        log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
+    """
     garmin_email: str = ""
     garmin_password: str = ""
 
@@ -210,7 +233,17 @@ class Config:
 
     @classmethod
     def get_llm_config(cls) -> dict:
-        """Return a dict with provider/model/api_key for the current configuration."""
+        """Return LLM configuration dictionary for the current provider.
+
+        Reads from the loaded configuration instance if available, otherwise
+        falls back to class-level attributes.
+
+        Returns:
+            dict: Configuration dictionary containing:
+                - provider: The LLM provider name ('anthropic', 'openai', or 'google')
+                - model: The model name for the selected provider
+                - api_key: The API key for the selected provider
+        """
         if cls._instance:
             provider = cls._instance.llm_provider
             models = {
@@ -232,7 +265,17 @@ class Config:
 
     @classmethod
     def validate(cls) -> Tuple[bool, list[str]]:
-        """Validate the current configuration and return (ok, errors)."""
+        """Validate the current configuration.
+
+        Checks that all required configuration values are present:
+        - Garmin credentials (email and password)
+        - API key for the selected LLM provider
+
+        Returns:
+            Tuple[bool, list[str]]: A tuple containing:
+                - bool: True if configuration is valid, False otherwise
+                - list[str]: List of error messages (empty if valid)
+        """
         instance = cls._instance or cls.load()
         errors = []
 
@@ -253,7 +296,12 @@ class Config:
 
     @classmethod
     def ensure_valid(cls) -> None:
-        """Raise ConfigError if config is invalid."""
+        """Ensure configuration is valid, raising an exception if not.
+
+        Raises:
+            ConfigError: If configuration validation fails, with details
+                of all missing or invalid configuration values.
+        """
         ok, errors = cls.validate()
         if not ok:
             raise ConfigError("Configuration invalid: " + "; ".join(errors))
