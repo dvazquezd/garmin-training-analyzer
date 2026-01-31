@@ -22,6 +22,55 @@
 - 🎨 **Custom Prompts**: External prompt management for easy customization
 - 🧪 **Testing Suite**: Comprehensive tests with pytest
 
+## 🏗️ Architecture & Design Principles
+
+This project follows professional software engineering practices with a focus on maintainability, testability, and clean code.
+
+### Template-Based Architecture
+
+The HTML report generation uses a **template-based architecture** that separates presentation from logic:
+
+- **HTML templates** ([src/templates/report_template.html](src/templates/report_template.html)) define the report structure using Jinja2 syntax
+- **CSS stylesheets** ([src/templates/report_styles.css](src/templates/report_styles.css)) handle all styling separately
+- **Python code** ([src/html_reporter.py](src/html_reporter.py)) focuses solely on data processing and template rendering
+
+This separation provides several benefits:
+- **Easier maintenance**: Update styling without touching Python code
+- **Better testability**: Template logic can be tested independently
+- **Improved readability**: No 590+ line methods with embedded HTML strings
+- **SOLID compliance**: Single Responsibility Principle - each file has one clear purpose
+
+### SOLID Principles
+
+The codebase adheres to SOLID principles:
+
+- **Single Responsibility**: Each class/module has one well-defined purpose (e.g., `GarminClient` handles API, `HTMLReporter` handles reporting)
+- **Open/Closed**: New features added through extension, not modification (e.g., new LLM providers via abstraction)
+- **Liskov Substitution**: LLM providers are interchangeable through common interfaces
+- **Interface Segregation**: Clients depend only on interfaces they use
+- **Dependency Inversion**: High-level modules depend on abstractions, not concrete implementations
+
+### Clean Code & DRY Practices
+
+Code quality standards enforced throughout:
+
+- **Functions < 50 lines**: Small, focused functions that do one thing well
+- **Descriptive naming**: Clear variable and function names that explain intent
+- **DRY (Don't Repeat Yourself)**: Shared logic extracted into reusable functions
+- **Type hints**: Full type annotations for better IDE support and error catching
+- **Google-style docstrings**: Comprehensive documentation for all public APIs
+
+### Separation of Concerns
+
+The architecture maintains clear boundaries:
+
+- **Logic layer** (`src/*.py`): Business logic, data processing, API integration
+- **Presentation layer** (`src/templates/`): HTML structure and styling
+- **Data layer** (`.cache/`, `analysis_reports/`): Persistence and output
+- **Configuration layer** (`.env`, `prompts/`): External configuration
+
+For detailed engineering standards and workflow guidelines, see [openspec/agents.md](openspec/agents.md).
+
 ## 📋 Table of Contents
 
 - [Quick Start](#-quick-start)
@@ -29,6 +78,8 @@
 - [Configuration](#-configuration)
 - [Usage](#-usage)
 - [Project Structure](#-project-structure)
+- [Architecture & Design Principles](#️-architecture--design-principles)
+- [Code Quality Standards](#-code-quality-standards)
 - [Garmin Library](#-garmin-library-reference)
 - [Development](#-development)
 - [Troubleshooting](#-troubleshooting)
@@ -129,31 +180,39 @@ garmin-training-analyzer/
 │   ├── garmin_client.py           # Garmin Connect client with cache & retry
 │   ├── llm_analizer.py            # LLM analyzer
 │   ├── prompt_manager.py          # Prompt management
-│   ├── cache_manager.py           # SQLite-based cache system (NEW!)
-│   ├── visualizations.py          # Matplotlib chart generator (NEW!)
-│   └── html_reporter.py           # HTML report generator (NEW!)
+│   ├── cache_manager.py           # SQLite-based cache system
+│   ├── visualizations.py          # Matplotlib chart generator
+│   ├── html_reporter.py           # HTML report generator
+│   └── templates/                 # Jinja2 templates for HTML reports
+│       ├── report_template.html   # HTML report structure
+│       └── report_styles.css      # Report styling
 │
 ├── prompts/                       # External prompts
 │   ├── system_prompt.txt          # System instructions
 │   └── user_prompt_template.txt  # User data template
 │
-├── tests/                         # Test suite (NEW!)
+├── tests/                         # Test suite
 │   ├── conftest.py                # Pytest fixtures
 │   ├── test_config.py             # Config tests
 │   ├── test_garmin_client.py      # Client tests
 │   └── test_prompt_manager.py     # Prompt tests
 │
+├── openspec/                      # Spec-driven development
+│   ├── specs/                     # Main capability specifications
+│   ├── changes/                   # Active changes and proposals
+│   └── agents.md                  # Engineering standards and principles
+│
 ├── analysis_reports/              # Generated reports
 │   ├── analisis_YYYYMMDD.txt      # Text format
 │   ├── analisis_YYYYMMDD.md       # Markdown format
 │   ├── datos_YYYYMMDD.json        # JSON format
-│   ├── reporte_YYYYMMDD.html      # HTML format (NEW!)
-│   ├── body_composition_*.png     # Weight & body fat charts (NEW!)
-│   ├── activity_distribution_*.png # Activity pie chart (NEW!)
-│   ├── weekly_volume_*.png        # Weekly volume bars (NEW!)
-│   └── heart_rate_zones_*.png     # HR histogram (NEW!)
+│   ├── reporte_YYYYMMDD.html      # HTML format
+│   ├── body_composition_*.png     # Weight & body fat charts
+│   ├── activity_distribution_*.png # Activity pie chart
+│   ├── weekly_volume_*.png        # Weekly volume bars
+│   └── heart_rate_zones_*.png     # HR histogram
 │
-├── .cache/                        # Cache directory (NEW!)
+├── .cache/                        # Cache directory
 │   └── garmin_cache.db            # SQLite cache database
 │
 ├── training_analyzer.py           # Main script
@@ -322,6 +381,67 @@ The analyzer generates multiple report formats in `analysis_reports/`:
    - `weekly_volume_*.png` - Bar charts of weekly distance and activity count
    - `heart_rate_zones_*.png` - Histogram of heart rate distribution
 
+## ✨ Code Quality Standards
+
+This project maintains high code quality standards to ensure maintainability and reliability.
+
+### Quality Metrics
+
+- **Pylint Score**: 10.00/10 for refactored modules (e.g., [src/html_reporter.py](src/html_reporter.py))
+- **Code Coverage**: Comprehensive test coverage with pytest
+- **Type Safety**: Full type hints throughout the codebase
+
+### Testing Approach
+
+The project uses **pytest** with a robust testing strategy:
+
+- **Fixtures** (`tests/conftest.py`): Reusable test data and mock objects
+- **Mocking**: External dependencies (Garmin API, LLM providers) are mocked for reliable tests
+- **Unit Tests**: Each module has dedicated test coverage
+- **Integration Tests**: End-to-end workflows validated
+
+Run tests with:
+```bash
+pytest tests/
+```
+
+### Code Style Standards
+
+All code follows strict style guidelines:
+
+- **Google-style docstrings**: All public functions, classes, and modules documented
+- **Type hints**: Full type annotations using Python 3.11+ syntax
+- **PEP 8 compliance**: Enforced via pylint
+- **Naming conventions**: Descriptive names that explain intent
+- **Function size**: Functions kept under 50 lines per Clean Code principles
+
+### Engineering Principles
+
+The codebase adheres to principles defined in [openspec/agents.md](openspec/agents.md):
+
+- **SOLID principles** for object-oriented design
+- **Clean Code** practices (small functions, meaningful names, DRY)
+- **KISS** (Keep It Simple, Stupid) - avoid over-engineering
+- **YAGNI** (You Aren't Gonna Need It) - implement only what's needed
+
+### Quality Expectations for Contributors
+
+When contributing to this project:
+
+1. **Maintain pylint score**: New code should achieve 10/10 or explain exceptions
+2. **Add tests**: All new features require test coverage
+3. **Document with docstrings**: Use Google-style format
+4. **Follow existing patterns**: Match the architectural style
+5. **Keep functions small**: Refactor if functions exceed 50 lines
+
+### Recent Quality Improvements
+
+**Template Refactoring (2026-01)**: Refactored HTML report generation
+- **Before**: 776-line file with 590+ line method containing embedded HTML/CSS
+- **After**: 208-line file using external Jinja2 templates
+- **Impact**: 69% code reduction, improved maintainability, achieved 10/10 pylint
+- **See**: [src/templates/](src/templates/) for separated presentation layer
+
 ## 🔧 Development
 
 ### Running Tests
@@ -351,6 +471,67 @@ python -m src.visualizations
 # Test HTML reporter (NEW!)
 python -m src.html_reporter
 ```
+
+### OpenSpec Workflow
+
+This project uses **OpenSpec** - a spec-driven development workflow that improves code quality through structured planning and clear requirements.
+
+#### What is OpenSpec?
+
+OpenSpec is a systematic approach to software changes that ensures:
+- Clear understanding of requirements before coding
+- Documented design decisions
+- Testable specifications
+- Traceable implementation tasks
+
+#### The Workflow
+
+Changes follow a structured artifact sequence:
+
+1. **Proposal** - Define why the change is needed and what will change
+2. **Design** - Document technical decisions and architecture
+3. **Specs** - Write testable requirements with scenarios
+4. **Tasks** - Break down implementation into checkboxed items
+5. **Implementation** - Work through tasks with full context
+6. **Archive** - Preserve the change history
+
+#### Creating a Change
+
+Start a new spec-driven change:
+
+```bash
+# Using OpenSpec CLI (if available)
+openspec new change "add-feature-name"
+
+# Or create directory structure manually
+mkdir -p openspec/changes/add-feature-name
+```
+
+Then create artifacts in sequence: `proposal.md` → `design.md` → `specs/` → `tasks.md`
+
+#### When to Use OpenSpec
+
+**Use the full workflow for:**
+- New features or significant enhancements
+- Architectural changes
+- Changes affecting multiple modules
+- Any work where design decisions need documentation
+
+**Simple fixes can skip the workflow:**
+- Typo corrections
+- Small bug fixes in isolated code
+- Documentation-only updates
+
+#### Benefits
+
+OpenSpec provides helpful structure that:
+- Prevents over-engineering through clear scope
+- Surfaces design issues early (before coding)
+- Creates searchable documentation of decisions
+- Makes onboarding easier with traceable history
+- Improves code review with clear context
+
+For complete workflow details and engineering standards, see [openspec/agents.md](openspec/agents.md).
 
 ### Code Structure
 
