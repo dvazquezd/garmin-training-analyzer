@@ -15,8 +15,7 @@ from typing import Optional, Tuple
 from dotenv import load_dotenv
 
 
-class ConfigError(RuntimeError):
-    """Error relacionado con la configuración."""
+from src.exceptions import ConfigError
 
 
 def _parse_bool(value: str | bool | None, default: bool = False) -> bool:
@@ -258,6 +257,16 @@ class Config:
         ok, errors = cls.validate()
         if not ok:
             raise ConfigError("Configuration invalid: " + "; ".join(errors))
+
+
+# Initialize configuration from environment at import time so tests that
+# reload the module see environment-driven defaults. Do not raise on import
+# to avoid breaking environments without required vars.
+try:
+    Config.load()
+except Exception:
+    # Keep defaults if loading/validation fails at import time
+    pass
 
 
 if __name__ == '__main__':
