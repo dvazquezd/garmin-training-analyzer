@@ -6,7 +6,9 @@
       "Bash(openspec instructions specs:*)",
       "Bash(openspec instructions design:*)",
       "Bash(python -m pytest:*)",
-      "Bash(python test_exception_chain.py:*)"
+      "Bash(python test_exception_chain.py:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions tasks:*)"
     ]
   }
 }
