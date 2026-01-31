@@ -1,23 +1,4 @@
-# Feature: Documentación de Código (code-documentation)
-
-## Context
-
-El proyecto requiere documentación consistente en los métodos y clases públicas para mejorar la mantenibilidad, la experiencia de desarrolladores y la generación de documentación automática. Este spec recoge los requisitos mínimos para que los métodos públicos y las clases en `src/` tengan docstrings completas siguiendo el estilo Google.
-
-**Valor que aporta**:
-- Mejora la lectura y comprensión del código
-- Facilita el onboarding de nuevos contribuidores
-- Permite generar documentación automática y mejorar soporte de IDE
-
----
-
-## Goal
-
-Asegurar que los módulos prioritarios y, en general, todos los métodos públicos del código base tengan docstrings completas y consistentes en formato Google.
-
----
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Public methods must have docstrings
 
@@ -49,17 +30,6 @@ All public methods (methods not starting with `_`) in modules under `src/` SHALL
 - **AND** the `_render_template()` docstring SHALL reference template files instead of embedded strings
 - **AND** docstrings SHALL indicate that templates are located in `src/templates/`
 
-### Requirement: Class-level documentation
-
-Public classes in `src/` SHALL have class-level docstrings explaining the class purpose and usage.
-
-#### Scenario: Class has descriptive docstring
-
-- **WHEN** a public class is defined
-- **THEN** the class SHALL have a docstring immediately after the class declaration
-- **AND** the docstring SHALL describe the class's purpose and responsibilities
-- **AND** the docstring SHALL include usage examples if the class has a non-trivial interface
-
 ### Requirement: Priority files must be fully documented
 
 The following high-priority modules SHALL have complete documentation for all public methods:
@@ -86,43 +56,3 @@ The following high-priority modules SHALL have complete documentation for all pu
 - **AND** references to "string templates" or "embedded HTML/CSS" SHALL be removed or updated
 - **AND** docstrings SHALL mention template file names where relevant (`report_template.html`, `report_styles.css`)
 - **AND** the module docstring SHALL be updated to reflect separation of templates and code
-
----
-
-## Technical Notes
-
-- Use Google-style docstrings. Example:
-
-```python
-def method_name(param1: str, param2: int) -> bool:
-    """Brief one-line description.
-
-    Optional longer description if needed.
-
-    Args:
-        param1: Description of param1
-        param2: Description of param2
-
-    Returns:
-        Description of return value
-
-    Raises:
-        ValueError: When param2 is negative
-    """
-```
-
-- Consider adding `pydocstyle` or CI checks to ensure coverage and consistency.
-
----
-
-## Out of Scope
-
-- Docstrings for private methods (beginning with `_`) unless exceptionally complex
-- Automatic generation or publishing of documentation (Sphinx) in this change
-
----
-
-## Verification
-
-- Run `pydocstyle` / `pydocstyle src/` or a linter configured for docstrings
-- Manually review the six priority modules to ensure no public methods are missing docstrings
