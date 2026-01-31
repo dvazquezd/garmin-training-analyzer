@@ -45,7 +45,7 @@ This skill provides Git workflow guidance, safety checks, and integration patter
 
 ```bash
 # Ensure you're on latest integration branch
-git checkout dev  # or main
+git checkout dev
 git pull
 
 # Create feature branch (use same name as OpenSpec change)
@@ -70,14 +70,15 @@ git commit -m "feat(<capability>): <task-description>
 git push -u origin <change-name>
 
 # Create Pull Request on your Git platform (GitHub/GitLab/Bitbucket)
+# IMPORTANT: Set base branch to dev (never main)
 # Include link to openspec/changes/<n>/ in PR description
 ```
 
 ### After PR Merge
 
 ```bash
-# Switch back to integration branch
-git checkout dev  # or main
+# Switch back to dev branch
+git checkout dev
 git pull
 
 # Delete local feature branch (optional but clean)
@@ -110,7 +111,7 @@ git branch -d <change-name>
 
 2. **Update your integration branch:**
    ```bash
-   git checkout main  # or dev
+   git checkout dev
    git pull
    ```
 
@@ -219,7 +220,7 @@ Use `.gitignore` to prevent accidental commits of these files.
    **On GitHub:**
    - Go to your repository
    - Click "Pull requests" → "New pull request"
-   - Base: `main` (or `dev`) ← Compare: `<change-name>`
+   - Base: `dev` (NEVER `main`) ← Compare: `<change-name>`
    - Click "Create pull request"
 
    **PR Template:**
@@ -268,7 +269,7 @@ Use `.gitignore` to prevent accidental commits of these files.
 
 1. **Switch to integration branch:**
    ```bash
-   git checkout main  # or dev
+   git checkout dev
    ```
 
 2. **Pull latest (includes your merged changes):**
@@ -466,8 +467,8 @@ git branch <change-name>
 # Switch to feature branch (takes your changes with you)
 git checkout <change-name>
 
-# Verify main is still clean
-git checkout main
+# Verify dev is still clean
+git checkout dev
 git status  # Should be clean
 
 # Back to feature branch
@@ -494,7 +495,7 @@ git commit -m "wip: save progress on feature-a"
 git stash
 
 # Switch to main and create bug fix branch
-git checkout main
+git checkout dev
 git pull
 git checkout -b fix-urgent-bug
 
@@ -533,22 +534,22 @@ git reset --hard HEAD~1  # Careful! This removes the commit
 
 **Problem:**
 ```
-PR shows conflicts with main
+PR shows conflicts with dev
 ```
 
 **Solution:**
 ```bash
-# Update your feature branch with latest main
+# Update your feature branch with latest dev
 git checkout <change-name>
 git fetch origin
-git merge origin/main
+git merge origin/dev
 
 # Resolve conflicts in your editor
 # Look for <<<<<<< and >>>>>>>
 
 # After resolving
 git add <resolved-files>
-git commit -m "merge: resolve conflicts with main"
+git commit -m "merge: resolve conflicts with dev"
 git push
 
 # PR automatically updates
@@ -609,10 +610,10 @@ fix-bug: tests pass
 fix(api): resolve edge case in validation logic
 ```
 
-**Rebase from main:**
+**Rebase from dev:
 ```bash
 git checkout <change-name>
-git rebase main
+git rebase dev
 
 # If conflicts, resolve them
 git add <resolved-files>
@@ -637,7 +638,7 @@ git checkout <branch-name>
 git branch -v
 
 # Clean up merged branches
-git branch --merged main | grep -v "main" | xargs git branch -d
+git branch --merged dev | grep -v "dev" | xargs git branch -d
 ```
 
 ### Stashing for Quick Context Switches
@@ -720,7 +721,7 @@ cd /path/to/your/project
 git checkout -b <new-branch-name>
 
 # Or return to a branch
-git checkout main
+git checkout dev
 ```
 
 ---
@@ -829,7 +830,7 @@ This guide ensures safe development practices with Git and OpenSpec.
 
 **Start new work:**
 ```bash
-git checkout main && git pull
+git checkout dev && git pull
 git checkout -b <change-name>
 ```
 
@@ -845,7 +846,7 @@ git commit -m "feat(<scope>): description"
 git push -u origin <change-name>
 # Create PR on GitHub/GitLab
 # After merge:
-git checkout main && git pull
+git checkout dev && git pull
 git branch -d <change-name>
 ```
 

@@ -584,14 +584,14 @@ git push -u origin <branch-name>
 
 **2. Create Pull Request:**
 - Go to your Git hosting platform (GitHub/GitLab/Bitbucket)
-- Create PR from `<branch-name>` → `<target-branch>`
+- **IMPORTANT:** Create PR from `<branch-name>` → `dev` (never to `main`)
 - Link to the change: `openspec/changes/<name>/`
 - Request review from teammates
 
 **3. After PR is merged:**
 ```bash
-# Switch back to main branch
-git checkout <target-branch>
+# Switch back to dev branch
+git checkout dev
 git pull
 
 # Delete local feature branch
