@@ -173,12 +173,13 @@ Implement tasks from an OpenSpec change.
    2. Verify implementation (optional):
       `/opsx:verify <name>`
 
-   3. Push and create Pull Request:
+   3. Push and create Pull Request to dev:
       ```bash
       git push -u origin <branch-name>
       ```
+      **IMPORTANT:** When creating the PR, set base branch to `dev` (not `main`)
 
-   4. After PR is merged, archive the change:
+   4. After PR is merged to dev, archive the change:
       `/opsx:archive <name>`
    ```
 
@@ -217,7 +218,7 @@ All tasks complete!
 **Next Steps:**
 1. Commit changes: `git add . && git commit -m "..."`
 2. Verify: `/opsx:verify <name>`
-3. Create PR: `git push -u origin <branch>`
+3. Create PR to dev: `git push -u origin <branch>` (then PR to `dev`)
 4. Archive after merge: `/opsx:archive <name>`
 ```
 
@@ -245,6 +246,7 @@ What would you like to do?
 - Verify Git branch safety before any implementation
 - Block or warn strongly when on protected branches (main/master/dev)
 - Suggest creating feature branch named after the change
+- **Always guide users to create PRs to `dev` branch, never to `main`**
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
 - If task is ambiguous, pause and ask before implementing
@@ -262,3 +264,4 @@ This skill supports the "actions on a change" model:
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
 - **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
 - **Git-aware**: Integrates with Git workflow when repository is detected, gracefully handles non-Git projects
+- **Dev-first**: Always promotes PR to `dev` branch to maintain main branch stability
